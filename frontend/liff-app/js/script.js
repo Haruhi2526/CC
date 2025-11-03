@@ -3,8 +3,19 @@
 // 各スポットの spotId を定義（AWS側と合わせる）
 const SPOT_IDS = {
     yil: "YIL-001",
-    statue: "STATUE-001"
+    statue: "STATUE-001",
+    BLD14213: "BLD14-RM213"
 };
+
+// 各スポットのスタンプ画像を定義
+const stampImages = {
+    "STATUE-001": "assets/images/stamps/statue.png",
+    "YIL-001": "assets/images/stamps/yil.png",
+    "BLD14-RM213": "assets/images/stamps/bld14213.png",
+    // 新規スポット（35.57146607574908, 139.64540828242127）
+    "CUSTOM-001": "assets/images/stamps/custom001.png"
+};
+
 let selectedSpot = null;
 
 const showListKeyframes = {
@@ -26,6 +37,27 @@ const closeButton = document.getElementById("closeButton");
 const mask = document.getElementById("mask");
 const locationName = document.getElementById("locationName")
 
+// スタンプ画像をUIに追加する共通関数
+function appendStampImage(spotId, nameIfAny) {
+    const stampSrc = stampImages[spotId];
+    if (!stampSrc) {
+        console.warn('スタンプ画像が見つかりません:', spotId);
+        return;
+    }
+    const container = document.getElementById('stampsContainer');
+    if (!container) return;
+    const emptyMsg = container.querySelector('.empty-message');
+    if (emptyMsg) emptyMsg.remove();
+    if (!container.querySelector(`img[data-spot="${spotId}"]`)) {
+        const img = document.createElement('img');
+        img.src = stampSrc;
+        img.alt = nameIfAny || spotId;
+        img.dataset.spot = spotId;
+        img.classList.add('stamp');
+        container.appendChild(img);
+    }
+}
+
 // yil modal
 document.getElementById("yil").addEventListener("click", async () => {
     locationModal.style.visibility = "visible";
@@ -45,6 +77,17 @@ document.getElementById("statue").addEventListener("click", async () => {
     locationName.textContent = "Mr.Fujiwara Statue";
     document.getElementById("location-img").src = "assets/images/statue.png";
     selectedSpot = "statue";
+});
+
+// 14-213
+document.getElementById("BLD14-213").addEventListener("click", async () => {
+    locationModal.style.visibility = "visible";
+    mask.style.visibility = "visible";
+    locationModal.animate(showListKeyframes, options);
+    mask.animate(showListKeyframes, options);
+    locationName.textContent = "14-213 Classroom";
+    document.getElementById("location-img").src = "assets/images/BLD14213.png";
+    selectedSpot = "BLD14213";
 });
 
 closeButton.addEventListener("click", () => {
@@ -112,7 +155,31 @@ document.getElementById('checkinButton').onclick = async () => {
                     `\ndistanceM: ${result.distanceM || 0}m` +
                     `\nradiusM: ${result.radiusM || 100}m`;
                 
-                // 範囲内の場合はスタンプ授与を試みる（オプション）
+                // 範囲内ならUIにスタンプを表示（ユーザーIDに関わらず）
+                if (inside) {
+                    const stampSrc = stampImages[spotIdToSend];
+                    if (stampSrc) {
+                        const container = document.getElementById('stampsContainer');
+
+                        // 「スタンプがありません」を削除
+                        const emptyMsg = container.querySelector('.empty-message');
+                        if (emptyMsg) emptyMsg.remove();
+
+                        // 重複チェック（同じスタンプが既にあるか確認）
+                        if (!container.querySelector(`img[data-spot="${spotIdToSend}"]`)) {
+                            const img = document.createElement('img');
+                            img.src = stampSrc;
+                            img.alt = result.name || spotIdToSend;
+                            img.dataset.spot = spotIdToSend;
+                            img.classList.add('stamp');
+                            container.appendChild(img);
+                        }
+                    } else {
+                        console.warn('スタンプ画像が見つかりません:', spotIdToSend);
+                    }
+                }
+
+                // 認証済みユーザーのみバックエンドでスタンプ授与を試みる
                 if (inside && userId !== 'user123') {
                     try {
                         await window.api.awardStamp(userId, spotIdToSend, 'GPS');
