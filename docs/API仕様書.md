@@ -1,7 +1,7 @@
 # API仕様書
 
-**最終更新**: 2025年11月  
-**バージョン**: 1.0
+**最終更新**: 2025年11月（GPS検証エンドポイント追加）  
+**バージョン**: 1.1
 
 ---
 
@@ -15,6 +15,7 @@
    - [1. LINE認証](#1-line認証)
    - [2. スタンプ一覧取得](#2-スタンプ一覧取得)
    - [3. スタンプ授与](#3-スタンプ授与)
+   - [4. GPS位置情報検証](#4-gps位置情報検証)
 6. [エラーレスポンス](#エラーレスポンス)
 7. [ステータスコード一覧](#ステータスコード一覧)
 
@@ -523,6 +524,197 @@ curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/dev/stamps/awar
 
 ---
 
+### 4. GPS位置情報検証
+
+#### エンドポイント
+
+```
+POST /gps/verify
+```
+
+#### 説明
+
+GPS位置情報を検証し、指定されたスタンプの範囲内にユーザーがいるかどうかを判定します。Haversine公式を使用して距離を計算し、スタンプマスタに設定された半径（radiusM）と端末の精度（accuracy）を考慮して判定します。
+
+#### リクエスト
+
+**ヘッダー**:
+```http
+Content-Type: application/json
+```
+
+**ボディ**:
+```json
+{
+  "userId": "Ubb2550980506cc932bf7a8fa7f372ec1",
+  "spotId": "YIL-001",
+  "lat": 35.55548,
+  "lon": 139.65503,
+  "accuracy": 10.5
+}
+```
+
+| パラメータ | 型 | 必須 | 説明 |
+|-----------|-----|------|------|
+| `userId` | string | 必須 | ユーザーID |
+| `spotId` | string | 必須 | スタンプID（spotId） |
+| `lat` | number | 必須 | 緯度（-90～90） |
+| `lon` | number | 必須 | 経度（-180～180） |
+| `accuracy` | number | オプション | 端末の精度（メートル）。指定しない場合は0として扱う |
+
+#### レスポンス
+
+**成功時（200 OK）**:
+```json
+{
+  "ok": true,
+  "spotId": "YIL-001",
+  "name": "Yagami Innovation Laboratory",
+  "lat": 35.55548,
+  "lon": 139.65503,
+  "distanceM": 45.2,
+  "within": true,
+  "radiusM": 15,
+  "accuracy": 10.5
+}
+```
+
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `ok` | boolean | 成功を示すフラグ（常に`true`） |
+| `spotId` | string | スタンプID |
+| `name` | string | スタンプ名 |
+| `lat` | number | リクエストされた緯度 |
+| `lon` | number | リクエストされた経度 |
+| `distanceM` | number | スタンプ位置からの距離（メートル、小数点第2位まで） |
+| `within` | boolean | 範囲内かどうか（`true`：範囲内、`false`：範囲外） |
+| `radiusM` | number | スタンプの有効半径（メートル） |
+| `accuracy` | number | 使用された精度（メートル） |
+
+**エラー時（400 Bad Request）**:
+
+必須パラメータが不足している場合:
+```json
+{
+  "error": "Error",
+  "message": "userId is required"
+}
+```
+
+スタンプが存在しない場合（404 Not Found）:
+```json
+{
+  "error": "Error",
+  "message": "Stamp not found: YIL-001",
+  "error_code": "STAMP_NOT_FOUND"
+}
+```
+
+スタンプタイプがGPSでない場合:
+```json
+{
+  "error": "Error",
+  "message": "This stamp is not a GPS type stamp. Type: IMAGE",
+  "error_code": "STAMP_TYPE_MISMATCH"
+}
+```
+
+位置情報が見つからない場合:
+```json
+{
+  "error": "Error",
+  "message": "Location information not found in stamp master",
+  "error_code": "LOCATION_NOT_FOUND"
+}
+```
+
+無効な位置データの場合:
+```json
+{
+  "error": "Error",
+  "message": "Invalid location data in stamp master",
+  "error_code": "INVALID_LOCATION"
+}
+```
+
+**エラー時（500 Internal Server Error）**:
+```json
+{
+  "error": "Error",
+  "message": "Internal Server Error: {詳細なエラーメッセージ}"
+}
+```
+
+#### 実装詳細
+
+1. スタンプマスタ情報を取得（StampMastersテーブル）
+2. スタンプタイプがGPSか確認
+3. Location情報からスタンプの座標（lat, lon）と半径（radiusM）を取得
+4. Haversine公式を使用して距離を計算
+5. 精度（accuracy）と半径（radiusM）を考慮して判定
+   - 有効半径 = max(radiusM, accuracy)
+   - distanceM <= 有効半径 の場合、`within = true`
+
+#### 距離計算アルゴリズム
+
+Haversine公式を使用して、2点間の大円距離を計算します。
+
+```
+distance = R * 2 * atan2(√a, √(1-a))
+
+where:
+  a = sin²(Δφ/2) + cos(φ1) * cos(φ2) * sin²(Δλ/2)
+  R = 地球の半径 (6,371,000 メートル)
+  φ1, φ2 = 緯度1, 緯度2 (ラジアン)
+  Δφ = 緯度の差 (ラジアン)
+  Δλ = 経度の差 (ラジアン)
+```
+
+#### サンプルコード
+
+**JavaScript (LIFFアプリ)**:
+```javascript
+const userId = sessionStorage.getItem('user_id');
+
+// 位置情報を取得
+navigator.geolocation.getCurrentPosition(async (pos) => {
+  const { latitude, longitude, accuracy } = pos.coords;
+  
+  const result = await window.api.verifyGPS(
+    userId,
+    'YIL-001',
+    latitude,
+    longitude,
+    accuracy
+  );
+  
+  if (result.ok) {
+    if (result.within) {
+      console.log(`範囲内！距離: ${result.distanceM}m`);
+      // スタンプ授与を試みる
+      await window.api.awardStamp(userId, 'YIL-001', 'GPS');
+    } else {
+      console.log(`範囲外。距離: ${result.distanceM}m（半径: ${result.radiusM}m）`);
+    }
+  }
+});
+```
+
+**cURL**:
+```bash
+curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/dev/gps/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "Ubb2550980506cc932bf7a8fa7f372ec1",
+    "spotId": "YIL-001",
+    "lat": 35.55548,
+    "lon": 139.65503,
+    "accuracy": 10.5
+  }'
+```
+
+---
+
 ## エラーレスポンス
 
 ### エラーレスポンス形式
@@ -592,8 +784,9 @@ curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/dev/stamps/awar
 | 日付 | バージョン | 変更内容 |
 |------|-----------|---------|
 | 2025年11月 | 1.0 | 初版作成（auth, stamps, awardエンドポイント） |
+| 2025年11月 | 1.1 | GPS検証エンドポイント（/gps/verify）を追加 |
 
 ---
 
-**最終更新**: 2025年11月
+**最終更新**: 2025年11月（GPS検証エンドポイント追加）
 

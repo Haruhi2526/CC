@@ -11,17 +11,19 @@
   - auth関数（LINE認証）✅
   - award関数（スタンプ授与）✅
   - stamps関数（スタンプ一覧取得）✅
+  - gps-verify関数（GPS検証）✅
 - **フロントエンド実装**: 100%完了（基本機能）
   - LIFFアプリ基本構造 ✅
   - LINEログイン機能 ✅
   - スタンプ一覧表示機能 ✅
-  - API統合（認証、スタンプ取得、スタンプ授与）✅
+  - GPS検証機能統合 ✅
+  - API統合（認証、スタンプ取得、スタンプ授与、GPS検証）✅
 
 ### ⏳ 次のステップ
-1. GPS検証関数の実装
-2. 画像認識関数の実装
-3. GPS/カメラスタンプ画面の実装
-4. ホーム画面の改善
+1. 画像認識関数の実装
+2. カメラスタンプ画面の実装
+3. ホーム画面の改善（進捗バー、統計情報）
+4. 統合テストの実施
 
 詳細は [`docs/残りのタスク整理.md`](./docs/残りのタスク整理.md) を参照してください。
 
@@ -33,9 +35,10 @@ backend/                   # Lambda関数と共通モジュール
   ├─ lambda/               # 各機能のLambda
   │   ├─ auth/            # LINE認証関数 ✅
   │   ├─ award/           # スタンプ授与関数 ✅
-  │   └─ stamps/          # スタンプ一覧取得関数 ✅
+  │   ├─ stamps/          # スタンプ一覧取得関数 ✅
+  │   └─ gps-verify/      # GPS検証関数 ✅
   └─ common/               # 共通ユーティリティ
-ai-processing/             # GPS/画像認識関連ロジック（未実装）
+ai-processing/             # GPS/画像認識関連ロジック（GPS検証は実装済み、画像認識は未実装）
 infrastructure/            # IaC（CloudFormation/SAM等）（未実装）
 docs/                      # 仕様・設計ドキュメント
 work-assignment/           # 体制・担当・運用ルール
@@ -62,7 +65,8 @@ work-assignment/           # 体制・担当・運用ルール
 - **実装済みファイル**:
   - `index.html` - エントリーポイント、LIFF SDK読み込み
   - `js/app.js` - LIFF初期化、認証フロー、スタンプ一覧表示
-  - `js/api.js` - API呼び出しラッパー（認証、スタンプ取得、スタンプ授与）
+  - `js/api.js` - API呼び出しラッパー（認証、スタンプ取得、スタンプ授与、GPS検証）
+  - `js/script.js` - GPS検証機能（位置情報取得、チェックイン処理）
   - `js/config.js` - APIエンドポイント、LIFF ID設定
   - `css/style.css` - 基本スタイル定義
 
@@ -100,6 +104,7 @@ ngrok http 8000
   - ✅ `auth`: LINE IDトークン検証、ユーザー登録、セッショントークン生成
   - ✅ `stamps`: スタンプ一覧取得
   - ✅ `award`: スタンプ授与（重複チェック、有効期間検証）
+  - ✅ `gps-verify`: GPS位置情報検証（Haversine公式による距離計算）
 
 ### デプロイ方法
 
@@ -108,6 +113,7 @@ ngrok http 8000
 詳細は各関数の実装手順書を参照:
 - [`docs/AWS-Console実装手順-auth関数.md`](./docs/AWS-Console実装手順-auth関数.md)
 - [`docs/AWS-Console実装手順-award関数.md`](./docs/AWS-Console実装手順-award関数.md)
+- [`docs/CORS設定修正手順-gps-verify関数.md`](./docs/CORS設定修正手順-gps-verify関数.md)
 
 ### 環境変数
 
@@ -124,12 +130,17 @@ ngrok http 8000
 - `auth`: DynamoDB読み書き権限（Usersテーブル）
 - `stamps`: DynamoDB読み取り権限（UserStamps, StampMastersテーブル）
 - `award`: DynamoDB読み書き権限（UserStamps, StampMastersテーブル）
+- `gps-verify`: DynamoDB読み取り権限（StampMastersテーブル）
 
 ## AI処理（GPS/画像認識）
 
-- **位置**: `ai-processing/`
-- **機能**: GPS距離判定、Rekognitionによる画像判定
-- **状態**: 未実装
+- **GPS検証**: 実装済み ✅
+  - **位置**: `backend/lambda/gps-verify/`
+  - **機能**: Haversine公式による距離計算、範囲判定
+  - **状態**: 実装完了・デプロイ済み
+- **画像認識**: 未実装
+  - **位置**: `ai-processing/`（予定）
+  - **機能**: Rekognitionによる画像判定
 
 ## インフラ（IaC）
 
@@ -159,6 +170,11 @@ https://{api-id}.execute-api.{region}.amazonaws.com/dev
 #### 3. スタンプ授与
 - **エンドポイント**: `POST /stamps/award`
 - **説明**: スタンプをユーザーに授与（重複チェック、有効期間検証含む）
+- **詳細**: [`docs/API仕様書.md`](./docs/API仕様書.md) を参照
+
+#### 4. GPS位置情報検証
+- **エンドポイント**: `POST /gps/verify`
+- **説明**: GPS位置情報を検証し、指定スタンプの範囲内かどうかを判定
 - **詳細**: [`docs/API仕様書.md`](./docs/API仕様書.md) を参照
 
 詳細なAPI仕様は [`docs/API仕様書.md`](./docs/API仕様書.md) を参照してください。
@@ -255,6 +271,7 @@ sam build && sam deploy --guided
 - API GatewayでCORS設定を確認
 - Lambda関数でOPTIONSリクエストを処理しているか確認
 - 詳細は [`docs/CORS設定修正手順.md`](./docs/CORS設定修正手順.md) を参照
+- GPS検証関数のCORS設定: [`docs/CORS設定修正手順-gps-verify関数.md`](./docs/CORS設定修正手順-gps-verify関数.md)
 
 ### 認証エラー
 - LIFF SDKが正しく読み込まれているか確認
@@ -272,6 +289,7 @@ sam build && sam deploy --guided
 - [`docs/AWS-Console実装手順-auth関数.md`](./docs/AWS-Console実装手順-auth関数.md)
 - [`docs/AWS-Console実装手順-award関数.md`](./docs/AWS-Console実装手順-award関数.md)
 - [`docs/LIFFアプリ基本構造作成手順.md`](./docs/LIFFアプリ基本構造作成手順.md)
+- [`docs/DynamoDB-スタンプマスターデータ投入手順.md`](./docs/DynamoDB-スタンプマスターデータ投入手順.md)
 
 ### API・技術仕様
 - [`docs/API仕様書.md`](./docs/API仕様書.md) ⭐ **NEW**
@@ -284,6 +302,7 @@ sam build && sam deploy --guided
 
 ### トラブルシューティング
 - [`docs/CORS設定修正手順.md`](./docs/CORS設定修正手順.md)
+- [`docs/CORS設定修正手順-gps-verify関数.md`](./docs/CORS設定修正手順-gps-verify関数.md)
 - [`docs/API-Gateway統合設定確認.md`](./docs/API-Gateway統合設定確認.md)
 - [`docs/デバッグ手順.md`](./docs/デバッグ手順.md)
 
@@ -293,5 +312,5 @@ sam build && sam deploy --guided
 
 ---
 
-**最終更新**: 2025年11月  
-**バージョン**: 1.0
+**最終更新**: 2025年11月（GPS検証機能実装完了）  
+**バージョン**: 1.1

@@ -1,0 +1,122 @@
+[
+  {
+    "StampId": {
+      "S": "STATUE-001"
+    },
+    "Name": {
+      "S": "Statue"
+    },
+    "Type": {
+      "S": "GPS"
+    },
+    "Location": {
+      "M": {
+        "lat": {
+          "N": "35.55548"
+        },
+        "lon": {
+          "N": "139.65428"
+        },
+        "radiusM": {
+          "N": "15"
+        }
+      }
+    }
+  },
+  {
+    "StampId": {
+      "S": "MONU-075"
+    },
+    "Name": {
+      "S": "75th Monument"
+    },
+    "Type": {
+      "S": "GPS"
+    },
+    "Location": {
+      "M": {
+        "lat": {
+          "N": "35.55603"
+        },
+        "lon": {
+          "N": "139.65371"
+        },
+        "radiusM": {
+          "N": "15"
+        }
+      }
+    }
+  },
+  {
+    "StampId": {
+      "S": "SEV-001"
+    },
+    "Name": {
+      "S": "7-Eleven"
+    },
+    "Type": {
+      "S": "GPS"
+    },
+    "Location": {
+      "M": {
+        "lat": {
+          "N": "35.55578"
+        },
+        "lon": {
+          "N": "139.65394"
+        },
+        "radiusM": {
+          "N": "15"
+        }
+      }
+    }
+  },
+  {
+    "StampId": {
+      "S": "YIL-001"
+    },
+    "Name": {
+      "S": "Yagami Innovation Laboratory"
+    },
+    "Type": {
+      "S": "GPS"
+    },
+    "Location": {
+      "M": {
+        "lat": {
+          "N": "35.55536"
+        },
+        "lon": {
+          "N": "139.65503"
+        },
+        "radiusM": {
+          "N": "15"
+        }
+      }
+    }
+  },
+  {
+    "StampId": {
+      "S": "BLD14-RM213"
+    },
+    "Name": {
+      "S": "Bldg 14 Room 213"
+    },
+    "Type": {
+      "S": "GPS"
+    },
+    "Location": {
+      "M": {
+        "lat": {
+          "N": "35.55542"
+        },
+        "lon": {
+          "N": "139.65404"
+        },
+        "radiusM": {
+          "N": "15"
+        }
+      }
+    }
+  }
+]

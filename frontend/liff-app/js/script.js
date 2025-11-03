@@ -1,6 +1,5 @@
 "use strict";
 
-const ENDPOINT = "https://is77v2y5ff.execute-api.us-east-1.amazonaws.com/gps/check";
 // 各スポットの spotId を定義（AWS側と合わせる）
 const SPOT_IDS = {
     yil: "YIL-001",
@@ -67,7 +66,7 @@ mask.addEventListener("click", () => {
     closeButton.dispatchEvent(new PointerEvent("click"));
 });
 
-document.getElementById('checkinButton').onclick = () => {
+document.getElementById('checkinButton').onclick = async () => {
     if (!selectedSpot) {
         alert("スポットを選択してください。");
         return;
@@ -81,43 +80,64 @@ document.getElementById('checkinButton').onclick = () => {
 
     // 端末の現在地を取得（ブラウザの Geolocation API）
     navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
         // 緯度・経度（小数, 単位は度）と精度[m]を取り出す
         const { latitude, longitude, accuracy } = pos.coords;
         console.log(`lat=${latitude}, lon=${longitude}, accuracy=${accuracy}m`);
         
         const spotIdToSend = SPOT_IDS[selectedSpot];
 
-        // 位置情報をサーバに送って判定（最寄りのみ判定: mode不要）
-        const res = await fetch(ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            // サーバ側が必要とする JSON 形式：userId / lat / lon / accuracy
-            body: JSON.stringify({
-                userId: 'user123',    // ユーザー識別子（今は仮でOK。あとでLINEのuserIdなどに置換）
-                spotId: spotIdToSend, // チェックするスポットID
-                lat: latitude,
-                lon: longitude,
-                accuracy              // 端末の推定誤差[m]。サーバは max(radiusM, accuracy) で判定済み
-            })
-        });
+            // ユーザーIDを取得（セッションストレージから）
+            const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID) || 'user123';
 
-        // レスポンス JSON を取得（例：{spotId, name, distanceM, within, ...}）
-        const json = await res.json();
+            // バックエンドAPIを使用してGPS検証
+            const result = await window.api.verifyGPS(
+                userId,
+                spotIdToSend,
+                latitude,
+                longitude,
+                accuracy
+            );
 
-        // 「どこかのスタンプに入ってるか？」= 最寄りの within が true かを見る
-        const inside = !!json.within;
+            // レスポンスの処理
+            if (result && result.ok !== false) {
+                const inside = !!result.within;
 
         // 画面出力
         document.getElementById('out').textContent =
         (inside ? "範囲内 ✅" : "範囲外 ❌") +
-        `\nname: ${json.name}` +
-        `\nlat: ${latitude}` +
-        `\nlon: ${longitude}` +
-        `\ndistanceM: ${json.distanceM}`;
-
+                    `\nname: ${result.name || ''}` +
+                    `\nlat: ${latitude.toFixed(6)}` +
+                    `\nlon: ${longitude.toFixed(6)}` +
+                    `\ndistanceM: ${result.distanceM || 0}m` +
+                    `\nradiusM: ${result.radiusM || 100}m`;
+                
+                // 範囲内の場合はスタンプ授与を試みる（オプション）
+                if (inside && userId !== 'user123') {
+                    try {
+                        await window.api.awardStamp(userId, spotIdToSend, 'GPS');
+                        console.log('スタンプ授与成功');
+                    } catch (awardError) {
+                        console.error('スタンプ授与エラー:', awardError);
+                        // エラーは無視（既に取得済みなどの可能性がある）
+                    }
+                }
+            } else {
+                // エラーレスポンスの場合
+                const errorMessage = result?.message || 'GPS検証に失敗しました';
+                document.getElementById('out').textContent = `エラー: ${errorMessage}`;
+                console.error('GPS検証エラー:', result);
+            }
+        } catch (error) {
+            // エラーハンドリング
+            console.error('GPS検証エラー:', error);
+            alert('位置情報検証エラー: ' + (error.message || error));
+            document.getElementById('out').textContent = 'エラー: ' + (error.message || '位置情報検証に失敗しました');
+        }
     }, (err) => {
         // 位置情報取得に失敗したときの処理
         alert('位置情報エラー: ' + err.message);
+        document.getElementById('out').textContent = '位置情報取得エラー: ' + err.message;
     }, {
         // オプション：高精度・タイムアウト・キャッシュ無効
         enableHighAccuracy: true,
