@@ -85,14 +85,32 @@ function showLoginButton() {
     
     // ログインボタンのイベントリスナー
     if (elements.loginButton) {
-        elements.loginButton.onclick = () => {
+        // 既存のイベントリスナーを削除
+        elements.loginButton.onclick = null;
+        elements.loginButton.addEventListener('click', () => {
             console.log('ログインボタンクリック');
-            if (typeof liff !== 'undefined') {
-                liff.login();
-            } else {
+            
+            if (typeof liff === 'undefined') {
                 showError('LIFF SDKが読み込まれていません', null, true);
+                return;
             }
-        };
+            
+            // ローディングを表示
+            if (elements.loading) {
+                elements.loading.style.display = 'block';
+            }
+            
+            console.log('LINEログインを開始...');
+            try {
+                // LINEログインを実行（この呼び出しでリダイレクトが発生する）
+                liff.login();
+                // 注意: liff.login()の後は実行されない（リダイレクトされるため）
+            } catch (error) {
+                console.error('LINEログインエラー:', error);
+                hideLoading();
+                showError('ログインに失敗しました: ' + (error.message || error), error, true);
+            }
+        });
     } else {
         console.error('loginButton要素が見つかりません');
     }
@@ -104,80 +122,106 @@ function showLoginButton() {
 async function handleLoggedIn() {
     try {
         console.log('handleLoggedIn 開始');
-        hideLoading();
+        
+        // LIFF SDKが初期化されているか確認
+        if (typeof liff === 'undefined') {
+            throw new Error('LIFF SDKが初期化されていません');
+        }
+        
+        // ログイン状態の確認
+        if (!liff.isLoggedIn()) {
+            console.log('ログインしていないため、ログインボタンを表示');
+            showLoginButton();
+            return;
+        }
+        
+        // ローディングを表示（認証処理中）
+        if (elements.loading) {
+            elements.loading.style.display = 'block';
+        }
+        
+        // ログインセクションを非表示
+        if (elements.loginSection) {
+            elements.loginSection.style.display = 'none';
+        }
+        
+        // エラー表示を非表示
+        if (elements.error) {
+            elements.error.style.display = 'none';
+        }
         
         // IDトークンを取得
         const idToken = liff.getIDToken();
-        console.log('IDトークン取得:', idToken ? '成功' : '失敗');
-        
         if (!idToken) {
-            throw new Error('IDトークンを取得できませんでした');
+            throw new Error('IDトークンを取得できませんでした。LINEアプリ内からアクセスしてください。');
         }
         
+        console.log('IDトークン取得成功');
         console.log('認証API呼び出し開始');
-        console.log('IDトークン:', idToken ? idToken.substring(0, 20) + '...' : 'なし');
+        
         // 認証APIを呼び出し
-        const authResponse = await api.auth(idToken);
-        console.log('認証APIレスポンス:', authResponse);
-        console.log('認証APIレスポンス（詳細）:', JSON.stringify(authResponse, null, 2));
+        const responseData = await api.auth(idToken);
         
-        // API Gateway経由の場合、レスポンス構造が異なる可能性がある
-        // bodyが文字列の場合もあるので、パースを試みる
-        let responseData = authResponse;
-        if (typeof authResponse === 'string') {
-            try {
-                responseData = JSON.parse(authResponse);
-            } catch (e) {
-                console.error('レスポンスのパースに失敗:', e);
-            }
-        }
-        
-        // bodyプロパティが存在する場合（API Gateway形式）
-        if (responseData.body && typeof responseData.body === 'string') {
-            try {
-                responseData = JSON.parse(responseData.body);
-            } catch (e) {
-                console.error('bodyのパースに失敗:', e);
-            }
-        }
-        
-        console.log('処理後のレスポンスデータ:', responseData);
-        
-        // エラーレスポンスの場合（statusCodeが400や500など）
-        if (authResponse.statusCode && authResponse.statusCode >= 400) {
-            const errorMessage = responseData.message || `APIエラー (${authResponse.statusCode})`;
+        // レスポンスの検証
+        if (!responseData || !responseData.ok) {
+            const errorMessage = responseData?.message || '認証に失敗しました';
             throw new Error(errorMessage);
         }
         
-        if (!responseData.ok) {
-            throw new Error(responseData.message || '認証に失敗しました');
+        // 必須フィールドの確認
+        if (!responseData.user_id || !responseData.access_token) {
+            throw new Error('認証レスポンスに必須フィールドが含まれていません');
         }
+        
+        console.log('認証成功:', {
+            user_id: responseData.user_id,
+            display_name: responseData.display_name
+        });
+        
+        // ローディングを非表示
+        hideLoading();
         
         // ユーザー情報を表示
         displayUserInfo(responseData);
         
         // スタンプ一覧を取得
-        await loadStamps(responseData.user_id);
+        try {
+            await loadStamps(responseData.user_id);
+        } catch (stampError) {
+            console.warn('スタンプ一覧の取得に失敗しましたが、処理を継続します:', stampError);
+            // スタンプ取得の失敗は致命的ではないので、エラー表示せず継続
+        }
         
         // メインコンテンツを表示
         if (elements.mainContent) {
             elements.mainContent.style.display = 'block';
         }
         
-        // ログアウトボタンのイベントリスナー
+        // ログアウトボタンのイベントリスナーを設定
         if (elements.logoutButton) {
-            elements.logoutButton.onclick = () => {
+            // 既存のイベントリスナーを削除
+            elements.logoutButton.onclick = null;
+            elements.logoutButton.addEventListener('click', () => {
                 if (confirm('ログアウトしますか？')) {
+                    // セッションストレージをクリア
+                    Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
+                        sessionStorage.removeItem(key);
+                    });
+                    
+                    // LIFFログアウト
                     liff.logout();
+                    
+                    // ページをリロード
                     location.reload();
                 }
-            };
+            });
         }
         
         console.log('handleLoggedIn 完了');
     } catch (error) {
         console.error('handleLoggedIn エラー:', error);
-        showError('ログイン処理に失敗しました', error, true);
+        const errorMessage = error.message || 'ログイン処理に失敗しました';
+        showError(errorMessage, error, true);
     }
 }
 
@@ -198,41 +242,35 @@ function displayUserInfo(authResponse) {
  * @param {string} userId - ユーザーID
  */
 async function loadStamps(userId) {
+    if (!userId) {
+        console.warn('ユーザーIDが指定されていません');
+        displayEmptyStamps();
+        return;
+    }
+    
     try {
         console.log('スタンプ一覧取得開始, userId:', userId);
-        const stampsResponse = await api.getStamps(userId);
-        console.log('スタンプ一覧レスポンス:', stampsResponse);
+        const responseData = await api.getStamps(userId);
         
-        // API Gateway経由の場合、レスポンス構造が異なる可能性がある
-        let responseData = stampsResponse;
-        if (typeof stampsResponse === 'string') {
-            try {
-                responseData = JSON.parse(stampsResponse);
-            } catch (e) {
-                console.error('レスポンスのパースに失敗:', e);
+        console.log('スタンプ一覧レスポンス受信:', {
+            ok: responseData?.ok,
+            stamps_count: responseData?.stamps?.length || 0
+        });
+        
+        // レスポンスの検証と処理
+        if (responseData && responseData.ok && Array.isArray(responseData.stamps)) {
+            if (responseData.stamps.length > 0) {
+                displayStamps(responseData.stamps);
+            } else {
+                displayEmptyStamps();
             }
-        }
-        
-        // bodyプロパティが存在する場合（API Gateway形式）
-        if (responseData && typeof responseData.body === 'string') {
-            try {
-                responseData = JSON.parse(responseData.body);
-            } catch (e) {
-                console.error('bodyのパースに失敗:', e);
-            }
-        }
-        
-        console.log('処理後のスタンプレスポンスデータ:', responseData);
-        
-        if (responseData && responseData.ok && responseData.stamps && responseData.stamps.length > 0) {
-            displayStamps(responseData.stamps);
         } else {
+            console.warn('スタンプ一覧の形式が不正です:', responseData);
             displayEmptyStamps();
         }
     } catch (error) {
         console.error('スタンプ一覧の取得に失敗しました:', error);
-        console.error('エラー詳細:', error.message, error);
-        // エラーでもアプリは続行
+        // エラーでもアプリは続行（スタンプがない状態で表示）
         displayEmptyStamps();
     }
 }
@@ -327,10 +365,16 @@ async function initializeLIFF() {
         
         console.log('LIFF初期化を開始...', CONFIG.LIFF_ID);
         
+        // LIFF初期化の前にローディングを表示
+        if (elements.loading) {
+            elements.loading.style.display = 'block';
+        }
+        
         liff.init({ liffId: CONFIG.LIFF_ID })
             .then(() => {
                 console.log('LIFF初期化成功');
                 console.log('ログイン状態:', liff.isLoggedIn());
+                console.log('LINEアプリ内:', liff.isInClient());
                 
                 // 初期化成功
                 if (!liff.isLoggedIn()) {
@@ -346,6 +390,7 @@ async function initializeLIFF() {
             .catch((err) => {
                 // 初期化エラー
                 console.error('LIFF初期化エラー:', err);
+                hideLoading();
                 showError('LIFF初期化に失敗しました: ' + (err.message || err), err, true);
             });
             

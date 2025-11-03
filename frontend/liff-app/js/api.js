@@ -47,45 +47,71 @@ async function apiCall(endpoint, options = {}) {
         // レスポンスボディを取得
         const contentType = response.headers.get('content-type');
         let data;
+        const responseText = await response.text();
         
+        // JSONレスポンスのパース
         if (contentType && contentType.includes('application/json')) {
-            data = await response.json();
-        } else {
-            const text = await response.text();
-            // JSON文字列の可能性があるのでパースを試みる
             try {
-                data = JSON.parse(text);
+                data = JSON.parse(responseText);
             } catch (e) {
-                data = text;
+                console.error('JSONパースエラー:', e);
+                throw new Error(`レスポンスのパースに失敗しました: ${e.message}`);
             }
+        } else if (responseText.trim().length > 0) {
+            // JSONではないが、テキストが存在する場合、JSONとしてパースを試みる
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                // JSONでない場合はテキストのまま
+                data = { message: responseText };
+            }
+        } else {
+            // レスポンスボディが空の場合
+            data = {};
         }
         
-        // API Gateway経由の場合、bodyプロパティにデータが入っている可能性
+        // API Gateway経由の場合、bodyプロパティにデータが入っている可能性がある
         if (data && typeof data.body === 'string') {
             try {
-                data = JSON.parse(data.body);
+                const parsedBody = JSON.parse(data.body);
+                // bodyの中身を展開
+                data = { ...data, ...parsedBody };
+                delete data.body;
             } catch (e) {
-                console.error('bodyのパースに失敗:', e);
+                console.warn('bodyプロパティのパースに失敗:', e);
             }
         }
         
-        // HTTPエラーステータスの場合
+        // HTTPエラーステータスの処理
         if (!response.ok) {
-            // API Gateway形式の場合、statusCodeプロパティで判定
-            if (data && data.statusCode && data.statusCode >= 400) {
-                const errorBody = data.body ? (typeof data.body === 'string' ? JSON.parse(data.body) : data.body) : data;
-                const errorMessage = (errorBody && errorBody.message) ? errorBody.message : `HTTP error! status: ${data.statusCode}`;
-                const error = new Error(errorMessage);
-                error.status = data.statusCode;
-                error.data = errorBody;
-                throw error;
-            } else {
-                const errorMessage = (data && data.message) ? data.message : `HTTP error! status: ${response.status}`;
-                const error = new Error(errorMessage);
-                error.status = response.status;
-                error.data = data;
-                throw error;
+            let errorMessage = `HTTP error! status: ${response.status}`;
+            let errorData = data;
+            
+            // エラーメッセージの抽出
+            if (data) {
+                if (data.message) {
+                    errorMessage = data.message;
+                } else if (data.error && data.message) {
+                    errorMessage = data.message;
+                } else if (typeof data === 'string') {
+                    errorMessage = data;
+                }
+                
+                // API Gateway形式の場合
+                if (data.statusCode && data.statusCode >= 400) {
+                    const errorBody = (data.body && typeof data.body === 'string') 
+                        ? JSON.parse(data.body) 
+                        : (data.body || data);
+                    
+                    errorMessage = errorBody.message || errorMessage;
+                    errorData = errorBody;
+                }
             }
+            
+            const error = new Error(errorMessage);
+            error.status = data?.statusCode || response.status;
+            error.data = errorData;
+            throw error;
         }
         
         return data;
@@ -105,30 +131,60 @@ const api = {
     /**
      * LINE認証
      * @param {string} idToken - LINE IDトークン
-     * @returns {Promise} 認証結果
+     * @returns {Promise<Object>} 認証結果
+     * @throws {Error} 認証に失敗した場合
      */
     async auth(idToken) {
-        const response = await apiCall(CONFIG.API_ENDPOINTS.AUTH, {
-            method: 'POST',
-            body: JSON.stringify({
-                id_token: idToken
-            })
-        });
-        
-        console.log('api.auth レスポンス:', response);
-        
-        // セッションストレージに保存
-        if (response && response.ok && response.access_token) {
-            sessionStorage.setItem(CONFIG.STORAGE_KEYS.ACCESS_TOKEN, response.access_token);
-            if (response.user_id) {
-                sessionStorage.setItem(CONFIG.STORAGE_KEYS.USER_ID, response.user_id);
-            }
-            if (response.display_name) {
-                sessionStorage.setItem(CONFIG.STORAGE_KEYS.USER_NAME, response.display_name);
-            }
+        if (!idToken || typeof idToken !== 'string' || idToken.trim().length === 0) {
+            throw new Error('IDトークンが無効です');
         }
         
-        return response;
+        console.log('認証API呼び出し:', CONFIG.API_ENDPOINTS.AUTH);
+        
+        try {
+            const response = await apiCall(CONFIG.API_ENDPOINTS.AUTH, {
+                method: 'POST',
+                body: JSON.stringify({
+                    id_token: idToken.trim()
+                })
+            });
+            
+            console.log('認証APIレスポンス受信:', {
+                ok: response?.ok,
+                user_id: response?.user_id,
+                has_access_token: !!response?.access_token
+            });
+            
+            // 認証成功時、セッションストレージに保存
+            if (response && response.ok && response.access_token) {
+                sessionStorage.setItem(CONFIG.STORAGE_KEYS.ACCESS_TOKEN, response.access_token);
+                
+                if (response.user_id) {
+                    sessionStorage.setItem(CONFIG.STORAGE_KEYS.USER_ID, response.user_id);
+                }
+                
+                if (response.display_name) {
+                    sessionStorage.setItem(CONFIG.STORAGE_KEYS.USER_NAME, response.display_name);
+                }
+                
+                console.log('セッションストレージに認証情報を保存しました');
+            } else {
+                // 認証失敗
+                const errorMessage = response?.message || '認証に失敗しました';
+                throw new Error(errorMessage);
+            }
+            
+            return response;
+        } catch (error) {
+            console.error('認証API呼び出しエラー:', error);
+            
+            // セッションストレージをクリア（認証失敗時）
+            Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
+                sessionStorage.removeItem(key);
+            });
+            
+            throw error;
+        }
     },
     
     /**
