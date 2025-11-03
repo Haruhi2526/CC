@@ -37,11 +37,6 @@
   - アラーム設定
 
 ### Phase 2: セキュリティ設定（Week 2）
-- [ ] **IAMロール・ポリシー作成**
-  - Lambda実行ロール
-  - API Gateway実行ロール
-  - 必要な権限の最小化
-
 - [ ] **Amazon Cognito設定**
   - ユーザープール作成
   - IDプール作成（必要に応じて）
@@ -93,7 +88,6 @@ infrastructure/
 │   ├── dynamodb.yaml
 │   ├── s3.yaml
 │   ├── api-gateway.yaml
-│   └── iam.yaml
 ├── sam/
 │   ├── template.yaml
 │   └── samconfig.toml
