@@ -8,12 +8,28 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; */
+    font-family: Philosopher;
     font-size: 16px;
     line-height: 1.6;
     color: #333;
     background-color: #f5f5f5;
     min-height: 100vh;
+}
+
+.wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+button {
+    font-family: Philosopher;
+    background-color: #3964a1;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    padding-bottom: 0.1rem;
 }
 
 #liffAppContent {
@@ -182,7 +198,7 @@ body {
     width: 100%;
 }
 
-.welcome-message {
+.welcome-message, .stamps-list, .yagami-map {
     background: white;
     border-radius: 8px;
     padding: 24px;
@@ -190,9 +206,9 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.welcome-message h2 {
+.welcome-message h2, .stamps-list h2, .yagami-map h2 {
     font-size: 20px;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
     color: #333;
 }
 
@@ -201,18 +217,8 @@ body {
     font-size: 14px;
 }
 
-/* スタンプ一覧 */
-.stamps-list {
-    background: white;
-    border-radius: 8px;
-    padding: 24px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.stamps-list h2 {
-    font-size: 18px;
-    margin-bottom: 16px;
-    color: #333;
+.map-img {
+    width: 700px;
 }
 
 .stamps-container {
@@ -256,6 +262,86 @@ body {
     font-size: 14px;
 }
 
+.image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.hotspot {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background-color: rgba(255, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.hotspot:hover {
+    background-color: rgba(255, 0, 0, 0.5);
+}
+
+#yil {
+    top: 55px;
+    left: 590px;
+}
+
+#locationModal {
+    width: 500px;
+    height: 700px;
+    background-color: white;
+    border-radius: 16px;
+    position: absolute;
+    inset: 5rem 0 auto;
+    margin: auto;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    border: 1px solid #432;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#checkinButton {
+    background-color: rgba(255, 0, 0, 0.4);
+    margin: 2rem 0;
+    height: 50px;
+    width: 120px;
+}
+
+#closeButton, #closeMyPageButton {
+    position: absolute;
+    bottom: 1.2rem;
+    height: 30px;
+    width: 60px;
+}
+
+#checkinButton:hover {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+
+#closeButton:hover {
+    background-color: #13325d;
+}
+
+#mask {
+    background: rgba(0, 0, 0, .1);
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+}
+
+#locationName {
+    text-align: center;
+    font-size: 2rem;
+    margin-top: 2rem;
+}
+
+#yil-img {
+    margin-top: 2rem;
+    width: 400px;
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
     .app-main {
@@ -267,8 +353,28 @@ body {
     }
     
     .welcome-message,
-    .stamps-list {
+    .stamps-list,
+    .yagami-map {
         padding: 20px;
+    }
+
+    #locationModal {
+        width: 350px;
+        height: 620px;
+        inset: 2rem 0 auto;
+    }
+
+    .map-img {
+        width: 330px;
+    }
+
+    #yil {
+        top: 20px;
+        left: 275px;
+    }
+
+    #yil-img {
+        width: 300px;
     }
     
     .app-header h1 {

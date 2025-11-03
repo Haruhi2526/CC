@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>スタンプラリー</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ress/dist/ress.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <script src="js/script.js" defer></script>
 </head>
 <body>
     <div id="liffAppContent">
@@ -24,12 +29,14 @@
         
         <!-- ログインボタン（未ログイン時） -->
         <div id="loginSection" class="login-section" style="display: none;">
-            <div class="login-content">
-                <h1>スタンプラリーへようこそ</h1>
-                <p>LINEアカウントでログインしてください</p>
-                <button id="loginButton" class="btn btn-primary btn-large">
-                    LINEでログイン
-                </button>
+            <div class="wrapper">
+                <div class="login-content">
+                    <h1>スタンプラリーへようこそ</h1>
+                    <p>LINEアカウントでログインしてください</p>
+                    <button id="loginButton" class="btn btn-primary btn-large">
+                        LINEでログイン
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -41,12 +48,54 @@
                 <button id="logoutButton" class="btn btn-secondary btn-small">ログアウト</button>
             </header>
             
-            <!-- ホーム画面コンテンツ（今後拡張） -->
+            <!-- ホーム画面コンテンツ -->
             <main class="app-main">
                 <div class="welcome-message">
                     <h2>ようこそ！</h2>
                     <p id="userInfo">ユーザー情報を読み込み中...</p>
                 </div>
+
+                <div class="yagami-map">
+                    <h2>矢上キャンパスのマップ</h2>
+                    <div class="wrapper">
+                        <div class="image-container">
+                            <img src="assets/images/yagami_map.png" alt="" class="map-img">
+                            <div class="hotspot" id="yil"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- locationModal -->
+                <section id="locationModal">
+                    <!-- <div class="wrapper">
+                        <div id="loadMonthPic" class="intersecting-circles-spinner">
+                            <div class="spinnerBlock">
+                                <span class="circle"></span>
+                                <span class="circle"></span>
+                                <span class="circle"></span>
+                                <span class="circle"></span>
+                                <span class="circle"></span>
+                                <span class="circle"></span>
+                                <span class="circle"></span>
+                            </div>
+                        </div>
+                        <img id="spot-pic" src="" alt="" width="70%" style="display:none;">
+                    </div> -->
+                    <div id="locationName">Location Name</div>
+                    <div class="wrapper">
+                        <img src="assets/images/yil.png" alt="yil-logo" id="yil-img">
+                    </div>
+                    <div class="wrapper">
+                        <button id="checkinButton">Check In</button>
+                    </div>
+                    <div class="wrapper">
+                        <pre id="out"></pre>
+                    </div>
+                    <div class="wrapper">
+                        <button id="closeButton">Close</button>
+                    </div>
+                </section>
+                <div id="mask"></div>
                 
                 <!-- スタンプ一覧エリア（今後実装） -->
                 <div id="stampsList" class="stamps-list">
