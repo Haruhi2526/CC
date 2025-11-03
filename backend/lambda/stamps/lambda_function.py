@@ -1,5 +1,6 @@
 import json
-from datetime import datetime
+from dynamodb_utils import get_user_stamps, get_stamp_master
+from response_utils import create_response
 
 
 def lambda_handler(event, context):
@@ -19,16 +20,32 @@ def lambda_handler(event, context):
                 'message': 'userId is required'
             })
         
-        # TODO: DynamoDBからスタンプ一覧を取得
-        # - UserStampsテーブルからuserIdでクエリ
-        # - StampMastersテーブルと結合してスタンプ詳細を取得
+        # DynamoDBからスタンプ一覧を取得
+        user_stamps = get_user_stamps(user_id)
         
-        # 暫定的なレスポンス（実装後に削除）
+        # スタンプマスタ情報を取得して結合
+        stamps_detail = []
+        for user_stamp in user_stamps:
+            stamp_id = user_stamp.get('StampId')
+            stamp_master = get_stamp_master(stamp_id)
+            
+            if stamp_master:
+                # スタンプ情報を結合
+                stamp_info = {
+                    'stamp_id': stamp_id,
+                    'name': stamp_master.get('Name'),
+                    'description': stamp_master.get('Description'),
+                    'type': stamp_master.get('Type'),
+                    'collected_at': user_stamp.get('CollectedAt'),
+                    'method': user_stamp.get('Method')
+                }
+                stamps_detail.append(stamp_info)
+        
         response_data = {
             'ok': True,
             'user_id': user_id,
-            'stamps': [],
-            'total': 0
+            'stamps': stamps_detail,
+            'total': len(stamps_detail)
         }
         
         return create_response(200, response_data)
@@ -38,18 +55,4 @@ def lambda_handler(event, context):
             'error': 'Internal Server Error',
             'message': str(e)
         })
-
-
-def create_response(status_code, body):
-    """標準的なHTTPレスポンスを作成"""
-    return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',  # 後でCORS設定に置き換え
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
-        },
-        'body': json.dumps(body, ensure_ascii=False)
-    }
 

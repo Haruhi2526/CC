@@ -17,7 +17,7 @@ work-assignment/           # 体制・担当・運用ルール
 
 ## 事前準備
 
-- AWSアカウント: 作成済み（IAMは後日設定）
+- AWSアカウント: 作成済み
 - LINE Developers: チャネルおよびLIFFアプリの基本設定は完了済み
 - GitHubリポジトリ: 作成済み
 
@@ -58,8 +58,7 @@ work-assignment/           # 体制・担当・運用ルール
 ## 開発環境セットアップ（ローカル）
 
 1) 共通
-- Git, AWS CLI をインストール
-- `aws configure` で一時的にルート認証情報を設定（IAM整備後に切替）
+- AWS Consoleで開発
 
 2) フロントエンド
 - VSCode等の静的サーバ拡張、もしくは簡易サーバで `frontend/liff-app/` を配信
