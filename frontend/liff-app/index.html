@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>スタンプラリー</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="liffAppContent">
+        <!-- ローディング表示 -->
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>読み込み中...</p>
+        </div>
+        
+        <!-- エラー表示 -->
+        <div id="error" class="error" style="display: none;">
+            <div class="error-icon">⚠️</div>
+            <p id="errorMessage"></p>
+            <button id="errorRetry" class="btn btn-primary" style="display: none;">再試行</button>
+        </div>
+        
+        <!-- ログインボタン（未ログイン時） -->
+        <div id="loginSection" class="login-section" style="display: none;">
+            <div class="login-content">
+                <h1>スタンプラリーへようこそ</h1>
+                <p>LINEアカウントでログインしてください</p>
+                <button id="loginButton" class="btn btn-primary btn-large">
+                    LINEでログイン
+                </button>
+            </div>
+        </div>
+        
+        <!-- メインコンテンツ -->
+        <div id="mainContent" style="display: none;">
+            <!-- ヘッダー -->
+            <header class="app-header">
+                <h1>スタンプラリー</h1>
+                <button id="logoutButton" class="btn btn-secondary btn-small">ログアウト</button>
+            </header>
+            
+            <!-- ホーム画面コンテンツ（今後拡張） -->
+            <main class="app-main">
+                <div class="welcome-message">
+                    <h2>ようこそ！</h2>
+                    <p id="userInfo">ユーザー情報を読み込み中...</p>
+                </div>
+                
+                <!-- スタンプ一覧エリア（今後実装） -->
+                <div id="stampsList" class="stamps-list">
+                    <h2>取得したスタンプ</h2>
+                    <div id="stampsContainer" class="stamps-container">
+                        <p class="empty-message">スタンプがありません</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
+    <!-- 設定 -->
+    <script src="js/config.js"></script>
+    
+    <!-- APIラッパー -->
+    <script src="js/api.js"></script>
+    
+    <!-- メインアプリケーション -->
+    <script src="js/app.js"></script>
+</body>
+</html>
