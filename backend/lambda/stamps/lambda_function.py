@@ -9,15 +9,25 @@ def lambda_handler(event, context):
     GET /stamps?userId={userId}
     """
     try:
-        # クエリパラメータの取得
-        query_params = event.get('queryStringParameters') or {}
-        user_id = query_params.get('userId')
+        # OPTIONSリクエストの処理（CORS preflight）
+        if event.get('httpMethod') == 'OPTIONS':
+            return create_response(200, {})
         
-        # バリデーション
-        if not user_id:
+        # クエリパラメータの取得
+        # Lambdaプロキシ統合の場合、queryStringParametersはNoneの可能性がある
+        query_params = event.get('queryStringParameters') or {}
+        
+        # デバッグログ（CloudWatch Logsで確認）
+        print(f"Event: {json.dumps(event)}")
+        print(f"Query params: {query_params}")
+        
+        user_id = query_params.get('userId') if query_params else None
+        
+        # クエリパラメータがNoneの場合の処理
+        if query_params is None or not user_id:
             return create_response(400, {
                 'error': 'Bad Request',
-                'message': 'userId is required'
+                'message': f'userId is required. queryStringParameters: {query_params}'
             })
         
         # DynamoDBからスタンプ一覧を取得
