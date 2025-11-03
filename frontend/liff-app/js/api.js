@@ -159,6 +159,32 @@ const api = {
                 method: method
             })
         });
+    },
+    
+    /**
+     * リッチメニュー一覧を取得
+     * @returns {Promise} リッチメニュー一覧
+     */
+    async getRichMenuList() {
+        return await apiCall(CONFIG.API_ENDPOINTS.RICHMENU_LIST, {
+            method: 'GET'
+        });
+    },
+    
+    /**
+     * ユーザーにリッチメニューを設定
+     * @param {string} userId - ユーザーID
+     * @param {string} richmenuId - リッチメニューID
+     * @returns {Promise} 設定結果
+     */
+    async setRichMenu(userId, richmenuId) {
+        return await apiCall(CONFIG.API_ENDPOINTS.RICHMENU_SET, {
+            method: 'POST',
+            body: JSON.stringify({
+                user_id: userId,
+                richmenu_id: richmenuId
+            })
+        });
     }
 };
 

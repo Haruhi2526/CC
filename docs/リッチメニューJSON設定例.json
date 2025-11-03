@@ -1,0 +1,64 @@
+{
+  "size": {
+    "width": 2500,
+    "height": 843
+  },
+  "selected": true,
+  "name": "メインメニュー",
+  "chatBarText": "メニュー",
+  "areas": [
+    {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1250,
+        "height": 421
+      },
+      "action": {
+        "type": "uri",
+        "uri": "https://liff.line.me/{LIFF_ID}",
+        "label": "ホーム"
+      }
+    },
+    {
+      "bounds": {
+        "x": 1251,
+        "y": 0,
+        "width": 1249,
+        "height": 421
+      },
+      "action": {
+        "type": "uri",
+        "uri": "https://liff.line.me/{LIFF_ID}/stamps.html",
+        "label": "スタンプ一覧"
+      }
+    },
+    {
+      "bounds": {
+        "x": 0,
+        "y": 422,
+        "width": 1250,
+        "height": 421
+      },
+      "action": {
+        "type": "uri",
+        "uri": "https://liff.line.me/{LIFF_ID}/map.html",
+        "label": "マップ"
+      }
+    },
+    {
+      "bounds": {
+        "x": 1251,
+        "y": 422,
+        "width": 1249,
+        "height": 421
+      },
+      "action": {
+        "type": "uri",
+        "uri": "https://liff.line.me/{LIFF_ID}/ranking.html",
+        "label": "ランキング"
+      }
+    }
+  ]
+}
+

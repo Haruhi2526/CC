@@ -18,7 +18,9 @@ const CONFIG = {
     API_ENDPOINTS: {
         AUTH: '/auth/verify',
         STAMPS: '/stamps',
-        AWARD: '/stamps/award'
+        AWARD: '/stamps/award',
+        RICHMENU_LIST: '/richmenu/list',
+        RICHMENU_SET: '/richmenu/set'
     }
 };
 
