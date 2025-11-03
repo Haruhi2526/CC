@@ -17,6 +17,7 @@ const myPageButton = document.getElementById("myPageButton");
 const myPageModal = document.getElementById("myPageModal");
 const locationModal = document.getElementById("locationModal");
 const closeButton = document.getElementById("closeButton");
+const closeMyPageButton = document.getElementById("closeMyPageButton");
 const mask = document.getElementById("mask");
 const maskM = document.getElementById("maskM");
 const locationName = document.getElementById("locationName")
@@ -73,3 +74,48 @@ closeButton.addEventListener("click", () => {
 mask.addEventListener("click", () => {
     closeButton.dispatchEvent(new PointerEvent("click"));
 });
+
+const ENDPOINT = "https://is77v2y5ff.execute-api.us-east-1.amazonaws.com/gps/check";
+
+document.getElementById('checkinButton').onclick = () => {
+  // 端末の現在地を取得（ブラウザの Geolocation API）
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        // 緯度・経度（小数, 単位は度）と精度[m]を取り出す
+        const { latitude, longitude, accuracy } = pos.coords;
+
+        // 位置情報をサーバに送って判定（最寄りのみ判定: mode不要）
+        const res = await fetch(ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // サーバ側が必要とする JSON 形式：userId / lat / lon / accuracy
+            body: JSON.stringify({
+                userId: 'user123',   // ← ユーザー識別子（今は仮でOK。あとでLINEのuserIdなどに置換）
+                lat: latitude,
+                lon: longitude,
+                accuracy             // 端末の推定誤差[m]。サーバは max(radiusM, accuracy) で判定済み
+            })
+        });
+
+        // レスポンス JSON を取得（例：{spotId, name, distanceM, within, ...}）
+        const json = await res.json();
+
+        // 「どこかのスタンプに入ってるか？」= 最寄りの within が true かを見る
+        const inside = !!json.within;
+
+        // 画面に出す（見やすいように主要フィールドだけ）
+        document.getElementById('out').textContent =
+        (inside ? "範囲内 ✅" : "範囲外 ❌") +
+        `\nspotId: ${json.spotId}` +
+        `\nname: ${json.name}` +
+        `\ndistanceM: ${json.distanceM}`;
+
+    }, (err) => {
+        // 位置情報取得に失敗したときの処理
+        alert('位置情報エラー: ' + err.message);
+    }, {
+        // オプション：高精度・タイムアウト・キャッシュ無効
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    });
+};
