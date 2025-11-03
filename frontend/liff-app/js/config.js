@@ -18,7 +18,8 @@ const CONFIG = {
     API_ENDPOINTS: {
         AUTH: '/auth/verify',
         STAMPS: '/stamps',
-        AWARD: '/stamps/award'
+        AWARD: '/stamps/award',
+        GPS_VERIFY: '/gps/verify'
     }
 };
 
