@@ -1,0 +1,11 @@
+boto3>=1.28.0
+
+# 注意: 現在は標準ライブラリのみを使用しているため、追加の依存関係はありません
+# 将来的にLINE IDトークン検証を実装する場合は、以下のいずれかを追加する必要があります:
+# - PyJWT (JWT検証用)
+# - line-bot-sdk (LINE Messaging API SDK)
+# 
+# Mac環境でビルドしたライブラリをLinux環境(Lambda)で動作させる場合:
+# - Dockerを使用してLinux環境でビルドすることを推奨
+# - または、manylinux1/manylinux2014互換のwheelファイルを使用
+
