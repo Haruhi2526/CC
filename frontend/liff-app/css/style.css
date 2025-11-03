@@ -206,6 +206,10 @@ button {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.stamps-list {
+    height: 300px;
+}
+
 .welcome-message h2, .stamps-list h2, .yagami-map h2 {
     font-size: 20px;
     margin-bottom: 16px;
@@ -223,36 +227,12 @@ button {
 
 .stamps-container {
     display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
 }
 
-.stamp-item {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    transition: all 0.3s ease;
-}
-
-.stamp-item:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.stamp-item h3 {
-    font-size: 16px;
-    margin-bottom: 8px;
-    color: #333;
-}
-
-.stamp-item p {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 8px;
-}
-
-.stamp-item small {
-    font-size: 12px;
-    color: #999;
+.stamp {
+    width: 200px;
 }
 
 .empty-message {
@@ -288,6 +268,11 @@ button {
 #statue {
     top: 140px;
     left: 440px;
+}
+
+#BLD14-213 {
+    top: 180px;
+    left: 380px;
 }
 
 #locationModal {
@@ -379,12 +364,25 @@ button {
     }
 
     #statue {
-        top: 60px;
-        left: 205px;
+        top: 50px;
+        left: 250px;
+    }
+
+    #BLD14-213 {
+        top: 83px;
+        left: 173px;
     }
 
     #location-img {
         height: 180px;
+    }
+
+    .stamp {
+        width: 100px;
+    }
+
+    .stamps-list {
+        height: 200px;
     }
     
     .app-header h1 {

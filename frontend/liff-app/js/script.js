@@ -4,7 +4,14 @@ const ENDPOINT = "https://is77v2y5ff.execute-api.us-east-1.amazonaws.com/gps/che
 // 各スポットの spotId を定義（AWS側と合わせる）
 const SPOT_IDS = {
     yil: "YIL-001",
-    statue: "STATUE-001"
+    statue: "STATUE-001",
+    BLD14213: "BLD14-RM213"
+};
+// 各スポットのスタンプ画像を定義
+const stampImages = {
+    "STATUE-001": "assets/images/stamps/statue.png",
+    "YIL-001": "assets/images/stamps/yil.png",
+    "BLD14-RM213": "assets/images/stamps/bld14213.png"
 };
 let selectedSpot = null;
 
@@ -27,7 +34,7 @@ const closeButton = document.getElementById("closeButton");
 const mask = document.getElementById("mask");
 const locationName = document.getElementById("locationName")
 
-// yil modal
+// yil 
 document.getElementById("yil").addEventListener("click", async () => {
     locationModal.style.visibility = "visible";
     mask.style.visibility = "visible";
@@ -38,6 +45,7 @@ document.getElementById("yil").addEventListener("click", async () => {
     selectedSpot = "yil";
 });
 
+// statue
 document.getElementById("statue").addEventListener("click", async () => {
     locationModal.style.visibility = "visible";
     mask.style.visibility = "visible";
@@ -46,6 +54,17 @@ document.getElementById("statue").addEventListener("click", async () => {
     locationName.textContent = "Mr.Fujiwara Statue";
     document.getElementById("location-img").src = "assets/images/statue.png";
     selectedSpot = "statue";
+});
+
+// 14-213
+document.getElementById("BLD14-213").addEventListener("click", async () => {
+    locationModal.style.visibility = "visible";
+    mask.style.visibility = "visible";
+    locationModal.animate(showListKeyframes, options);
+    mask.animate(showListKeyframes, options);
+    locationName.textContent = "14-213 Classroom";
+    document.getElementById("location-img").src = "assets/images/BLD14213.png";
+    selectedSpot = "BLD14213";
 });
 
 closeButton.addEventListener("click", () => {
@@ -84,7 +103,7 @@ document.getElementById('checkinButton').onclick = () => {
         // 緯度・経度（小数, 単位は度）と精度[m]を取り出す
         const { latitude, longitude, accuracy } = pos.coords;
         console.log(`lat=${latitude}, lon=${longitude}, accuracy=${accuracy}m`);
-        
+
         const spotIdToSend = SPOT_IDS[selectedSpot];
 
         // 位置情報をサーバに送って判定（最寄りのみ判定: mode不要）
@@ -106,6 +125,29 @@ document.getElementById('checkinButton').onclick = () => {
 
         // 「どこかのスタンプに入ってるか？」= 最寄りの within が true かを見る
         const inside = !!json.within;
+
+        if (inside) {
+            const spotId = json.spotId;
+            const stampSrc = stampImages[spotId];
+
+            if (stampSrc) {
+                const container = document.getElementById('stampsContainer');
+
+                // 「スタンプがありません」を削除
+                const emptyMsg = container.querySelector('.empty-message');
+                if (emptyMsg) emptyMsg.remove();
+
+                // 重複チェック（同じスタンプが既にあるか確認）
+                if (!container.querySelector(`img[data-spot="${spotId}"]`)) {
+                    const img = document.createElement('img');
+                    img.src = stampSrc;
+                    img.alt = json.name;
+                    img.dataset.spot = spotId;
+                    img.classList.add('stamp');
+                    container.appendChild(img);
+                }
+            }
+        }
 
         // 画面出力
         document.getElementById('out').textContent =
