@@ -327,27 +327,27 @@ async function initializeLIFF() {
         
         console.log('LIFF初期化を開始...', CONFIG.LIFF_ID);
         
-liff.init({ liffId: CONFIG.LIFF_ID })
-    .then(() => {
+        liff.init({ liffId: CONFIG.LIFF_ID })
+            .then(() => {
                 console.log('LIFF初期化成功');
                 console.log('ログイン状態:', liff.isLoggedIn());
                 
-        // 初期化成功
-        if (!liff.isLoggedIn()) {
-            // ログインしていない場合
+                // 初期化成功
+                if (!liff.isLoggedIn()) {
+                    // ログインしていない場合
                     console.log('未ログイン - ログインボタンを表示');
-            showLoginButton();
-        } else {
-            // ログイン済みの場合
+                    showLoginButton();
+                } else {
+                    // ログイン済みの場合
                     console.log('ログイン済み - 認証処理を開始');
-            handleLoggedIn();
-        }
-    })
-    .catch((err) => {
-        // 初期化エラー
+                    handleLoggedIn();
+                }
+            })
+            .catch((err) => {
+                // 初期化エラー
                 console.error('LIFF初期化エラー:', err);
                 showError('LIFF初期化に失敗しました: ' + (err.message || err), err, true);
-    });
+            });
             
     } catch (error) {
         console.error('LIFF SDK読み込みエラー:', error);

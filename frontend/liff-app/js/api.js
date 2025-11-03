@@ -159,6 +159,34 @@ const api = {
                 method: method
             })
         });
+    },
+    
+    /**
+     * GPS位置情報を検証
+     * @param {string} userId - ユーザーID
+     * @param {string} spotId - スポットID（スタンプID）
+     * @param {number} lat - 緯度
+     * @param {number} lon - 経度
+     * @param {number} accuracy - 精度（メートル、オプション）
+     * @returns {Promise} GPS検証結果
+     */
+    async verifyGPS(userId, spotId, lat, lon, accuracy = null) {
+        const body = {
+            userId: userId,
+            spotId: spotId,
+            lat: lat,
+            lon: lon
+        };
+        
+        // accuracyが指定されている場合は追加
+        if (accuracy !== null && accuracy !== undefined) {
+            body.accuracy = accuracy;
+        }
+        
+        return await apiCall(CONFIG.API_ENDPOINTS.GPS_VERIFY, {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
     }
 };
 
