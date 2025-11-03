@@ -14,20 +14,14 @@ def lambda_handler(event, context):
             return create_response(200, {})
         
         # クエリパラメータの取得
-        # Lambdaプロキシ統合の場合、queryStringParametersはNoneの可能性がある
         query_params = event.get('queryStringParameters') or {}
+        user_id = query_params.get('userId')
         
-        # デバッグログ（CloudWatch Logsで確認）
-        print(f"Event: {json.dumps(event)}")
-        print(f"Query params: {query_params}")
-        
-        user_id = query_params.get('userId') if query_params else None
-        
-        # クエリパラメータがNoneの場合の処理
-        if query_params is None or not user_id:
+        # バリデーション
+        if not user_id:
             return create_response(400, {
                 'error': 'Bad Request',
-                'message': f'userId is required. queryStringParameters: {query_params}'
+                'message': 'userId is required'
             })
         
         # DynamoDBからスタンプ一覧を取得
