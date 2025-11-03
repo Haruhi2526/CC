@@ -1,4 +1,5 @@
 import json
+import base64
 from response_utils import create_response, create_error_response
 from dynamodb_utils import create_or_update_user
 from token_utils import generate_session_token
@@ -34,13 +35,45 @@ def verify_line_id_token_mock(id_token: str) -> dict:
     # 3. 有効期限の確認
     # 4. 環境変数からChannel Secretを取得
     
-    # モック実装: id_tokenをそのままuser_idとして使用（開発用）
-    # 本番ではトークンをデコードしてユーザー情報を取得
-    return {
-        'user_id': id_token[:32] if len(id_token) > 32 else id_token,  # 簡易的なuser_id生成
-        'display_name': 'LINE User',  # デフォルト表示名
-        'line_id': None  # LINE IDは取得できない場合がある
-    }
+    # モック実装: JWTトークンからユーザー情報を取得（開発用）
+    # 注意: 署名検証は行っていないため、本番環境では必ず検証を実装してください
+    try:
+        # JWTトークンは3つの部分から構成: header.payload.signature
+        parts = id_token.split('.')
+        if len(parts) != 3:
+            # JWT形式でない場合はフォールバック
+            return {
+                'user_id': id_token[:32] if len(id_token) > 32 else id_token,
+                'display_name': 'LINE User',
+                'line_id': None
+            }
+        
+        # payload部分をデコード（Base64URL）
+        payload_part = parts[1]
+        # Base64URLパディングを追加
+        padding = 4 - len(payload_part) % 4
+        if padding != 4:
+            payload_part += '=' * padding
+        
+        payload_bytes = base64.urlsafe_b64decode(payload_part)
+        payload = json.loads(payload_bytes.decode('utf-8'))
+        
+        # sub（ユーザーID）を取得
+        user_id = payload.get('sub', id_token[:32] if len(id_token) > 32 else id_token)
+        display_name = payload.get('name', 'LINE User')
+        
+        return {
+            'user_id': user_id,
+            'display_name': display_name,
+            'line_id': None  # LINE IDは取得できない場合がある
+        }
+    except Exception as e:
+        # デコードに失敗した場合はフォールバック
+        return {
+            'user_id': id_token[:32] if len(id_token) > 32 else id_token,
+            'display_name': 'LINE User',
+            'line_id': None
+        }
 
 
 def lambda_handler(event, context):
