@@ -291,11 +291,24 @@ button {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-#checkinButton {
+#checkinButton, #uploadButton {
     background-color: rgba(255, 0, 0, 0.4);
-    margin: 2rem 0 1.5rem;
+    margin: 0 2rem 1rem;
     height: 50px;
     width: 120px;
+}
+
+#uploadButton {
+    background-color: #ccc;
+}
+
+#uploadButton.abled {
+    background-color: rgba(255, 0, 0, 0.4);
+    cursor: pointer;
+}
+
+#uploadSection {
+    margin: 1.3rem 0 1.3rem 5rem;
 }
 
 #closeButton, #closeMyPageButton {
@@ -305,7 +318,7 @@ button {
     width: 60px;
 }
 
-#checkinButton:hover {
+#checkinButton:hover, #uploadButton.abled:hover {
     background-color: rgba(255, 0, 0, 0.7);
 }
 
@@ -392,6 +405,10 @@ button {
 
     #location-img {
         height: 180px;
+    }
+
+    #checkinButton, #uploadButton {
+        margin: 0 1rem 1rem;
     }
 
     .stamp {

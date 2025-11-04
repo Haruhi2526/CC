@@ -35,7 +35,7 @@ const myPageButton = document.getElementById("myPageButton");
 const locationModal = document.getElementById("locationModal");
 const closeButton = document.getElementById("closeButton");
 const mask = document.getElementById("mask");
-const locationName = document.getElementById("locationName")
+const locationName = document.getElementById("locationName");
 
 // スタンプ画像をUIに追加する共通関数
 function appendStampImage(spotId, nameIfAny) {
@@ -100,7 +100,11 @@ closeButton.addEventListener("click", () => {
         isAnimating = false;
         locationModal.style.visibility = "hidden";
         mask.style.visibility = "hidden";
-        document.getElementById('out').textContent = ""; // リセット
+        // リセット
+        document.getElementById('out').textContent = ""; 
+        document.getElementById("photoInput").value = "";
+        uploadButton.classList.remove('abled');
+        uploadButton.disabled = true;
     };
 });
 
@@ -152,11 +156,23 @@ document.getElementById('checkinButton').onclick = async () => {
                     `\nname: ${result.name || ''}` +
                     `\nlat: ${latitude.toFixed(6)}` +
                     `\nlon: ${longitude.toFixed(6)}` +
-                    `\ndistanceM: ${result.distanceM || 0}m` +
-                    `\nradiusM: ${result.radiusM || 100}m`;
+                    `\ndistanceM: ${result.distanceM || 0}m`;
                 
                 // 範囲内ならUIにスタンプを表示（ユーザーIDに関わらず）
                 if (inside) {
+                    // ボタンを操作可能に
+                    uploadButton.classList.add('abled');
+                    uploadButton.disabled = false;
+
+                    uploadButton.onclick = async () => {
+                        const file = photoInput.files[0];
+                        if (!file) {
+                            alert('画像ファイルを選択してください。');
+                            return;
+                        }
+                        // 画像アップロード処理追加
+                    }
+
                     const stampSrc = stampImages[spotIdToSend];
                     if (stampSrc) {
                         const container = document.getElementById('stampsContainer');
