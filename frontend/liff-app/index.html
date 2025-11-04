@@ -15,9 +15,11 @@
 <body>
     <div id="liffAppContent">
         <!-- ローディング表示 -->
-        <div id="loading" class="loading">
-            <div class="loading-spinner"></div>
-            <p>読み込み中...</p>
+        <div class="wrapper">
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>読み込み中...</p>
+            </div>
         </div>
         
         <!-- エラー表示 -->
@@ -102,6 +104,10 @@
                 <!-- スタンプ一覧エリア -->
                 <div id="stampsList" class="stamps-list">
                     <h2>取得したスタンプ</h2>
+                    <p>進捗度: <span id="progressText">0%</span></p>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
                     <div id="stampsContainer" class="stamps-container">
                         <p class="empty-message">スタンプがありません</p>
                     </div>

@@ -296,6 +296,8 @@ function displayStamps(stamps) {
         `;
         elements.stampsContainer.appendChild(stampElement);
     });
+    // バックエンドから取得したデータを使って進捗更新
+    updateProgress(stamps);
 }
 
 /**
@@ -305,6 +307,8 @@ function displayEmptyStamps() {
     if (elements.stampsContainer) {
         elements.stampsContainer.innerHTML = '<p class="empty-message">スタンプがありません</p>';
     }
+    // 空の場合も進捗リセット
+    updateProgress([]);
 }
 
 /**
@@ -319,6 +323,24 @@ function formatDate(timestamp) {
     const date = new Date(timestamp * 1000);
     return date.toLocaleString('ja-JP');
 }
+
+/**
+ * スタンプ進捗を更新
+ * @param {Array} stamps - 取得済みスタンプ配列
+ */
+function updateProgress(stamps = []) {
+    const totalSpots = Object.keys(SPOT_IDS).length; // 全スポット数
+    const obtained = stamps.length;
+    const ratio = totalSpots > 0 ? obtained / totalSpots : 0;
+    const percent = Math.round(ratio * 100);
+
+    const textEl = document.getElementById('progressText');
+    const fillEl = document.getElementById('progressFill');
+
+    if (textEl) textEl.textContent = `${percent}%（${obtained}/${totalSpots}）`;
+    if (fillEl) fillEl.style.width = `${percent}%`;
+}
+
 
 /**
  * LIFF SDKの読み込みを待つ
