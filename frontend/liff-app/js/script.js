@@ -36,6 +36,8 @@ const locationModal = document.getElementById("locationModal");
 const closeButton = document.getElementById("closeButton");
 const mask = document.getElementById("mask");
 const locationName = document.getElementById("locationName");
+const locationImg = document.getElementById("location-img");
+const loadingPic = document.getElementById("loadingPic");
 
 // スタンプ画像をUIに追加する共通関数
 function appendStampImage(spotId, nameIfAny) {
@@ -65,17 +67,30 @@ document.getElementById("yil").addEventListener("click", async () => {
     locationModal.animate(showListKeyframes, options);
     mask.animate(showListKeyframes, options);
     locationName.textContent = "YIL Entrance";
-    document.getElementById("location-img").src = "assets/images/yil.png";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/yil.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
     selectedSpot = "yil";
 });
 
+// statue
 document.getElementById("statue").addEventListener("click", async () => {
     locationModal.style.visibility = "visible";
     mask.style.visibility = "visible";
     locationModal.animate(showListKeyframes, options);
     mask.animate(showListKeyframes, options);
     locationName.textContent = "Mr.Fujiwara Statue";
-    document.getElementById("location-img").src = "assets/images/statue.png";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/statue.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
     selectedSpot = "statue";
 });
 
@@ -86,7 +101,13 @@ document.getElementById("BLD14-213").addEventListener("click", async () => {
     locationModal.animate(showListKeyframes, options);
     mask.animate(showListKeyframes, options);
     locationName.textContent = "14-213 Classroom";
-    document.getElementById("location-img").src = "assets/images/BLD14213.png";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/BLD14213.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
     selectedSpot = "BLD14213";
 });
 
@@ -153,10 +174,10 @@ document.getElementById('checkinButton').onclick = async () => {
         // 画面出力
         document.getElementById('out').textContent =
         (inside ? "範囲内 ✅" : "範囲外 ❌") +
-                    `\nname: ${result.name || ''}` +
-                    `\nlat: ${latitude.toFixed(6)}` +
-                    `\nlon: ${longitude.toFixed(6)}` +
-                    `\ndistanceM: ${result.distanceM || 0}m`;
+                    `\nName: ${result.name || ''}` +
+                    `\nLat: ${latitude.toFixed(6)}` +
+                    `\nLon: ${longitude.toFixed(6)}` +
+                    `\nDistanceM: ${result.distanceM || 0}m`;
                 
                 // 範囲内ならUIにスタンプを表示（ユーザーIDに関わらず）
                 if (inside) {
