@@ -208,7 +208,7 @@ button {
 }
 
 .stamps-list {
-    height: 400px;
+    height: 610px;
 }
 
 .welcome-message h2, .stamps-list h2, .yagami-map h2 {
@@ -238,6 +238,7 @@ button {
 
 .stamp {
     width: 200px;
+    cursor: pointer;
 }
 
 .empty-message {
@@ -245,6 +246,49 @@ button {
     color: #999;
     padding: 40px 20px;
     font-size: 14px;
+}
+
+.stamp-item {
+    position: relative;
+    display: inline-block;
+}
+
+.stamp-info {
+    position: absolute;
+    bottom: 100%; /* 画像の上側に配置 */
+    left: 45%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    white-space: nowrap;
+    text-align: center;
+    opacity: 0;
+    animation: fadeInUp 0.3s forwards;
+    z-index: 10;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translate(-50%, 0px); }
+    to { opacity: 1; transform: translate(-50%, -8px); }
+}
+
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.stamp.obtained {
+    opacity: 1;
+}
+
+.stamp.not-obtained {
+    opacity: 0.3;
+    filter: grayscale(80%);
+    cursor: default;
 }
 
 .image-container {
@@ -508,9 +552,13 @@ button {
     }
 
     .stamps-list {
-        height: 300px;
+        height: 400px;
     }
-    
+
+    .stamp-info {
+        left: 50%;
+    }
+        
     .app-header h1 {
         font-size: 18px;
     }

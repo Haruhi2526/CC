@@ -12,8 +12,7 @@ const stampImages = {
     "STATUE-001": "assets/images/stamps/statue.png",
     "YIL-001": "assets/images/stamps/yil.png",
     "BLD14-RM213": "assets/images/stamps/bld14213.png",
-    // 新規スポット（35.57146607574908, 139.64540828242127）
-    "CUSTOM-001": "assets/images/stamps/custom001.png"
+    "test": "assets/images/stamps/test.png"
 };
 
 let selectedSpot = null;
@@ -194,25 +193,56 @@ document.getElementById('checkinButton').onclick = async () => {
                         // 画像アップロード処理追加
                     }
 
-                    const stampSrc = stampImages[spotIdToSend];
-                    if (stampSrc) {
-                        const container = document.getElementById('stampsContainer');
+                    // const stampSrc = stampImages[spotIdToSend];
+                    // if (stampSrc) {
+                    //     const container = document.getElementById('stampsContainer');
 
-                        // 「スタンプがありません」を削除
-                        const emptyMsg = container.querySelector('.empty-message');
-                        if (emptyMsg) emptyMsg.remove();
+                    //     // 「スタンプがありません」を削除
+                    //     const emptyMsg = container.querySelector('.empty-message');
+                    //     if (emptyMsg) emptyMsg.remove();
 
-                        // 重複チェック（同じスタンプが既にあるか確認）
-                        if (!container.querySelector(`img[data-spot="${spotIdToSend}"]`)) {
-                            const img = document.createElement('img');
-                            img.src = stampSrc;
-                            img.alt = result.name || spotIdToSend;
-                            img.dataset.spot = spotIdToSend;
-                            img.classList.add('stamp');
-                            container.appendChild(img);
-                        }
+                    //     // 重複チェック（同じスタンプが既にあるか確認）
+                    //     if (!container.querySelector(`img[data-spot="${spotIdToSend}"]`)) {
+                    //         const img = document.createElement('img');
+                    //         img.src = stampSrc;
+                    //         img.alt = result.name || spotIdToSend;
+                    //         img.dataset.spot = spotIdToSend;
+                    //         img.classList.add('stamp');
+                    //         container.appendChild(img);
+                    //     }
+                    // } else {
+                    //     console.warn('スタンプ画像が見つかりません:', spotIdToSend);
+                    // }
+                    // 現在のスタンプ取得状況を取得
+                    const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
+                    let userStamps = [];
+
+                    try {
+                        userStamps = await window.api.getUserStamps(userId);
+                    } catch (err) {
+                        console.error("スタンプ取得エラー:", err);
+                    }
+
+                    // すでに取得済みなら追加処理しない
+                    const alreadyObtained = userStamps.some(s => s.stamp_id === spotIdToSend);
+                    if (alreadyObtained) {
+                        console.log(`スタンプ「${spotIdToSend}」はすでに取得済みです`);
                     } else {
-                        console.warn('スタンプ画像が見つかりません:', spotIdToSend);
+                        // バックエンドにスタンプ授与
+                        try {
+                            await window.api.awardStamp(userId, spotIdToSend, 'GPS');
+                            console.log('スタンプ授与成功');
+                        } catch (awardError) {
+                            console.error('スタンプ授与エラー:', awardError);
+                        }
+
+                        // 再度スタンプ一覧を取得し、UIを再描画
+                        try {
+                            const updatedStamps = await window.api.getUserStamps(userId);
+                            displayStamps(updatedStamps);
+                        } catch (refreshError) {
+                            console.error("スタンプ再取得エラー:", refreshError);
+                        }
                     }
                 }
 
