@@ -37,6 +37,8 @@ const mask = document.getElementById("mask");
 const locationName = document.getElementById("locationName");
 const locationImg = document.getElementById("location-img");
 const loadingPic = document.getElementById("loadingPic");
+const obtainedModal = document.getElementById('obtainedModal');
+const mask2 = document.getElementById('mask2');
 
 // スタンプ画像をUIに追加する共通関数
 function appendStampImage(spotId, nameIfAny) {
@@ -133,6 +135,26 @@ mask.addEventListener("click", () => {
     closeButton.dispatchEvent(new PointerEvent("click"));
 });
 
+function obtainedModalShow() {
+    // 表示（フェードイン）
+    obtainedModal.style.display = 'block';
+    mask2.style.display = 'block';
+    requestAnimationFrame(() => {
+        obtainedModal.style.opacity = '1';
+        mask2.style.opacity = '1';
+    });
+
+    // 3秒後にフェードアウトして非表示にする
+    setTimeout(() => {
+        obtainedModal.style.opacity = '0';
+        mask2.style.opacity = '0';
+        setTimeout(() => {
+            obtainedModal.style.display = 'none';
+            mask2.style.display = 'none';
+        }, 500); // フェードアウト時間と合わせる
+    }, 3000);
+}
+
 document.getElementById('checkinButton').onclick = async () => {
     if (!selectedSpot) {
         alert("スポットを選択してください。");
@@ -176,10 +198,11 @@ document.getElementById('checkinButton').onclick = async () => {
                     `\nName: ${result.name || ''}` +
                     `\nLat: ${latitude.toFixed(6)}` +
                     `\nLon: ${longitude.toFixed(6)}` +
-                    `\nDistanceM: ${result.distanceM || 0}m`;
+                    `\nDistance: ${result.distanceM || 0}m`;
                 
                 // 範囲内ならUIにスタンプを表示（ユーザーIDに関わらず）
                 if (inside) {
+                    obtainedModalShow(); // スタンプ獲得モーダル表示
                     // ボタンを操作可能に
                     uploadButton.classList.add('abled');
                     uploadButton.disabled = false;
