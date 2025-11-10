@@ -228,6 +228,12 @@ button {
 
 #out {
     font-family: Philosopher;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.exp {
+    padding: 0 1rem;
 }
 
 .stamps-container {
@@ -558,7 +564,7 @@ button {
 
     #locationModal {
         width: 350px;
-        height: 620px;
+        height: 630px;
         inset: 2rem 0 auto;
     }
 
