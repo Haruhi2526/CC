@@ -720,6 +720,16 @@ button {
     color: #666;
 }
 
+.ranking-item.self {
+    background-color: #e8f4f8;
+    border-left: 4px solid #3964a1;
+}
+
+.ranking-item.self .name {
+    font-weight: bold;
+    color: #3964a1;
+}
+
 .empty-state {
     text-align: center;
     padding: 60px 20px;

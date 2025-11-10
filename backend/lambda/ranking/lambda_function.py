@@ -59,14 +59,20 @@ def lambda_handler(event, context):
             # ランキング計算
             period_type = query_params.get('type', 'weekly')  # weekly or monthly
             return calculate_rankings(period_type)
-        elif method == 'GET' and '/ranking/weekly' in path:
-            # 週間ランキング取得
+        elif method == 'GET' and '/ranking/friends/weekly' in path:
+            # 友達週間ランキング取得
+            user_id = query_params.get('user_id')
             period = query_params.get('period') or get_current_week_period()
-            return get_weekly_rankings(period)
-        elif method == 'GET' and '/ranking/monthly' in path:
-            # 月間ランキング取得
+            if not user_id:
+                return create_error_response(400, 'user_id is required')
+            return get_friends_weekly_rankings(user_id, period)
+        elif method == 'GET' and '/ranking/friends/monthly' in path:
+            # 友達月間ランキング取得
+            user_id = query_params.get('user_id')
             period = query_params.get('period') or get_current_month_period()
-            return get_monthly_rankings(period)
+            if not user_id:
+                return create_error_response(400, 'user_id is required')
+            return get_friends_monthly_rankings(user_id, period)
         elif method == 'GET' and '/ranking/compare' in path:
             # 友達比較
             user_id = query_params.get('user_id')
@@ -97,15 +103,26 @@ def calculate_rankings(period_type='weekly'):
         period = get_current_week_period() if period_type == 'weekly' else get_current_month_period()
         period_key = f'weekly-{period}' if period_type == 'weekly' else f'monthly-{period}'
         
+        print(f'ランキング計算開始: period_type={period_type}, period={period}, period_key={period_key}')
+        
         # 期間の開始日時を計算
         if period_type == 'weekly':
-            year, week, _ = datetime.now().isocalendar()
-            start_date = datetime.strptime(f'{year}-W{week:02d}-1', '%Y-W%W-%w')
+            # ISO週の開始日（月曜日）を計算
+            now = datetime.now()
+            year, week, weekday = now.isocalendar()
+            # 月曜日を週の開始とする（weekday: 1=月曜日, 7=日曜日）
+            days_from_monday = weekday - 1
+            start_date = now - timedelta(days=days_from_monday)
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
             start_timestamp = int(start_date.timestamp())
         else:
+            # 月間ランキング: 今月の1日 00:00:00 を開始日とする
             now = datetime.now()
-            start_date = datetime(now.year, now.month, 1)
+            start_date = datetime(now.year, now.month, 1, 0, 0, 0, 0)
             start_timestamp = int(start_date.timestamp())
+        
+        print(f'期間開始タイムスタンプ: {start_timestamp} ({start_date})')
+        print(f'現在のタイムスタンプ: {int(datetime.now().timestamp())}')
         
         # UserStampsテーブルから全ユーザーのスタンプ数を集計
         user_stamps_table = get_table('UserStamps')
@@ -116,21 +133,31 @@ def calculate_rankings(period_type='weekly'):
         user_stamp_counts = {}
         
         # Scanを使用して全スタンプを取得（実際の運用では効率化が必要）
+        print('UserStampsテーブルからスタンプデータを取得中...')
         response = user_stamps_table.scan()
         items = response.get('Items', [])
+        print(f'取得したスタンプデータ件数: {len(items)}')
         
+        period_stamp_count = 0
         for item in items:
             user_id = item.get('UserId')
             collected_at = int(item.get('CollectedAt', 0))
             
             # 期間内のスタンプのみをカウント
             if collected_at >= start_timestamp:
+                period_stamp_count += 1
                 if user_id not in user_stamp_counts:
                     user_stamp_counts[user_id] = 0
                 user_stamp_counts[user_id] += 1
+                print(f'期間内スタンプ: user_id={user_id}, collected_at={collected_at}')
+        
+        print(f'期間内のスタンプ数: {period_stamp_count}')
+        print(f'ユーザー数: {len(user_stamp_counts)}')
+        print(f'ユーザーごとのスタンプ数: {user_stamp_counts}')
         
         # スタンプ数でソート
         sorted_users = sorted(user_stamp_counts.items(), key=lambda x: x[1], reverse=True)
+        print(f'ソート後のユーザー数: {len(sorted_users)}')
         
         # ランキングデータを保存
         rank = 1
@@ -359,4 +386,204 @@ def get_current_month_period():
     """
     now = datetime.now()
     return f"{now.year}-{now.month:02d}"
+
+
+def get_friends_weekly_rankings(user_id: str, period: str):
+    """
+    友達の週間ランキングを取得
+    
+    Args:
+        user_id (str): ユーザーID
+        period (str): 期間文字列（例: "2025-W45"）
+    
+    Returns:
+        dict: API Gateway用のレスポンス
+    """
+    try:
+        friends_table = get_table('Friends')
+        rankings_table = get_table('Rankings')
+        users_table = get_table('Users')
+        
+        # 友達リストを取得
+        friends_response = friends_table.query(
+            KeyConditionExpression='UserId = :user_id',
+            ExpressionAttributeValues={':user_id': user_id}
+        )
+        
+        friends_items = friends_response.get('Items', [])
+        print(f'友達リスト取得: user_id={user_id}, 友達数={len(friends_items)}')
+        
+        # Statusが'active'の友達のみをフィルタリング
+        friend_ids = []
+        for item in friends_items:
+            status = item.get('Status', 'active')
+            friend_id = item.get('FriendId')
+            print(f'友達: {friend_id}, Status: {status}')
+            if status == 'active':
+                friend_ids.append(friend_id)
+        
+        print(f'アクティブな友達数: {len(friend_ids)}')
+        
+        # 自分自身もランキングに含める
+        user_ids_to_include = friend_ids.copy()
+        if user_id not in user_ids_to_include:
+            user_ids_to_include.append(user_id)
+            print(f'自分自身を追加: {user_id}')
+        
+        print(f'ランキングに含めるユーザー数: {len(user_ids_to_include)} (友達: {len(friend_ids)}, 自分: 1)')
+        
+        if not user_ids_to_include:
+            print('ランキングに含めるユーザーがありません')
+            return create_response(200, {
+                'ok': True,
+                'period': period,
+                'period_type': 'weekly',
+                'rankings': []
+            })
+        
+        # 全体ランキングから友達と自分自身をフィルタリング
+        period_key = f'weekly-{period}'
+        print(f'友達ランキング取得: user_id={user_id}, period={period}, period_key={period_key}')
+        print(f'ランキングに含めるIDリスト: {user_ids_to_include}')
+        
+        rankings_response = rankings_table.query(
+            KeyConditionExpression='Period = :period_val',
+            ExpressionAttributeValues={':period_val': period_key},
+            ScanIndexForward=True
+        )
+        
+        all_rankings = rankings_response.get('Items', [])
+        print(f'全体ランキング件数: {len(all_rankings)}')
+        
+        # 友達と自分自身をフィルタリング
+        friend_rankings = []
+        for item in all_rankings:
+            item_user_id = item.get('UserId')
+            if item_user_id in user_ids_to_include:
+                is_self = (item_user_id == user_id)
+                friend_rankings.append({
+                    'rank': int(item.get('Rank')),
+                    'user_id': item_user_id,
+                    'stamp_count': int(item.get('StampCount', 0)),
+                    'display_name': item.get('DisplayName', 'Unknown'),
+                    'is_self': is_self  # 自分自身かどうかのフラグ
+                })
+                print(f'ランキング追加: {item_user_id} {"(自分)" if is_self else "(友達)"}, rank={item.get("Rank")}, stamps={item.get("StampCount")}')
+        
+        print(f'友達ランキング件数: {len(friend_rankings)}')
+        
+        # ランクを再計算（1位から）
+        for i, ranking in enumerate(friend_rankings):
+            ranking['rank'] = i + 1
+        
+        return create_response(200, {
+            'ok': True,
+            'period': period,
+            'period_type': 'weekly',
+            'rankings': friend_rankings
+        })
+        
+    except Exception as e:
+        error_msg = f'Failed to get friends weekly rankings: {str(e)}'
+        print(error_msg)
+        return create_error_response(500, error_msg)
+
+
+def get_friends_monthly_rankings(user_id: str, period: str):
+    """
+    友達の月間ランキングを取得
+    
+    Args:
+        user_id (str): ユーザーID
+        period (str): 期間文字列（例: "2025-11"）
+    
+    Returns:
+        dict: API Gateway用のレスポンス
+    """
+    try:
+        friends_table = get_table('Friends')
+        rankings_table = get_table('Rankings')
+        users_table = get_table('Users')
+        
+        # 友達リストを取得
+        friends_response = friends_table.query(
+            KeyConditionExpression='UserId = :user_id',
+            ExpressionAttributeValues={':user_id': user_id}
+        )
+        
+        friends_items = friends_response.get('Items', [])
+        print(f'友達リスト取得: user_id={user_id}, 友達数={len(friends_items)}')
+        
+        # Statusが'active'の友達のみをフィルタリング
+        friend_ids = []
+        for item in friends_items:
+            status = item.get('Status', 'active')
+            friend_id = item.get('FriendId')
+            print(f'友達: {friend_id}, Status: {status}')
+            if status == 'active':
+                friend_ids.append(friend_id)
+        
+        print(f'アクティブな友達数: {len(friend_ids)}')
+        
+        # 自分自身もランキングに含める
+        user_ids_to_include = friend_ids.copy()
+        if user_id not in user_ids_to_include:
+            user_ids_to_include.append(user_id)
+            print(f'自分自身を追加: {user_id}')
+        
+        print(f'ランキングに含めるユーザー数: {len(user_ids_to_include)} (友達: {len(friend_ids)}, 自分: 1)')
+        
+        if not user_ids_to_include:
+            print('ランキングに含めるユーザーがありません')
+            return create_response(200, {
+                'ok': True,
+                'period': period,
+                'period_type': 'monthly',
+                'rankings': []
+            })
+        
+        # 全体ランキングから友達と自分自身をフィルタリング
+        period_key = f'monthly-{period}'
+        print(f'友達ランキング取得: user_id={user_id}, period={period}, period_key={period_key}')
+        print(f'ランキングに含めるIDリスト: {user_ids_to_include}')
+        
+        rankings_response = rankings_table.query(
+            KeyConditionExpression='Period = :period_val',
+            ExpressionAttributeValues={':period_val': period_key},
+            ScanIndexForward=True
+        )
+        
+        all_rankings = rankings_response.get('Items', [])
+        print(f'全体ランキング件数: {len(all_rankings)}')
+        
+        # 友達と自分自身をフィルタリング
+        friend_rankings = []
+        for item in all_rankings:
+            item_user_id = item.get('UserId')
+            if item_user_id in user_ids_to_include:
+                is_self = (item_user_id == user_id)
+                friend_rankings.append({
+                    'rank': int(item.get('Rank')),
+                    'user_id': item_user_id,
+                    'stamp_count': int(item.get('StampCount', 0)),
+                    'display_name': item.get('DisplayName', 'Unknown'),
+                    'is_self': is_self  # 自分自身かどうかのフラグ
+                })
+                print(f'ランキング追加: {item_user_id} {"(自分)" if is_self else "(友達)"}, rank={item.get("Rank")}, stamps={item.get("StampCount")}')
+        
+        # ランクを再計算（1位から）
+        for i, ranking in enumerate(friend_rankings):
+            ranking['rank'] = i + 1
+        
+        return create_response(200, {
+            'ok': True,
+            'period': period,
+            'period_type': 'monthly',
+            'rankings': friend_rankings
+        })
+        
+    except Exception as e:
+        error_msg = f'Failed to get friends monthly rankings: {str(e)}'
+        print(error_msg)
+        return create_error_response(500, error_msg)
 
