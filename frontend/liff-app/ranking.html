@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>ランキング - スタンプラリー</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ress/dist/ress.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <header class="app-header">
+            <h1>🏆 ランキング</h1>
+            <a href="index.html" class="btn btn-secondary btn-small">ホームに戻る</a>
+        </header>
+        
+        <main class="main-content">
+            <!-- タブ切り替え -->
+            <div class="tabs">
+                <button class="tab active" data-period="weekly">週間</button>
+                <button class="tab" data-period="monthly">月間</button>
+            </div>
+            
+            <!-- ランキング表示エリア -->
+            <div id="rankingsContainer" class="rankings-container">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>読み込み中...</p>
+                </div>
+            </div>
+            
+            <!-- シェアボタン -->
+            <div class="action-buttons">
+                <button id="shareButton" class="btn btn-primary">結果をシェア</button>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ranking.js"></script>
+</body>
+</html>
+

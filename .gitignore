@@ -21,7 +21,6 @@ yarn-error.log*
 # AWS
 .aws-sam/
 samconfig.toml.bak
-*.zip
 
 # IDE
 .vscode/

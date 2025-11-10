@@ -243,6 +243,35 @@ const api = {
             method: 'POST',
             body: JSON.stringify(body)
         });
+    },
+    
+    /**
+     * ランキングを取得
+     * @param {string} endpoint - ランキングエンドポイント（/ranking/weekly または /ranking/monthly）
+     * @param {string} period - 期間（オプション）
+     * @returns {Promise} ランキングデータ
+     */
+    async getRankings(endpoint, period = null) {
+        let url = endpoint;
+        if (period) {
+            url += `?period=${encodeURIComponent(period)}`;
+        }
+        return await apiCall(url, {
+            method: 'GET'
+        });
+    },
+    
+    /**
+     * ユーザー比較
+     * @param {string} userId - ユーザーID
+     * @param {string} friendId - 友達のユーザーID
+     * @returns {Promise} 比較結果
+     */
+    async compareUsers(userId, friendId) {
+        const endpoint = `/ranking/compare?user_id=${encodeURIComponent(userId)}&friend_id=${encodeURIComponent(friendId)}`;
+        return await apiCall(endpoint, {
+            method: 'GET'
+        });
     }
 };
 

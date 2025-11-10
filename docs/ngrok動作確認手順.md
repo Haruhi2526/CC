@@ -194,7 +194,51 @@ ngrok config add-authtoken YOUR_AUTH_TOKEN
 - ngrokのHTTPS URLを使用しているか
 - ブラウザのコンソールでエラーメッセージを確認
 
-### 問題4: LIFFアプリが表示されない
+### 問題4: ERR_NGROK_3200 - エンドポイントがオフライン
+
+**原因**: ngrokエージェントが起動していない、またはセッションが切れている
+
+**エラーメッセージ例**:
+```
+ERR_NGROK_3200
+The endpoint nonactinically-uninscribed-griffin.ngrok-free.dev is offline.
+```
+
+**解決方法**:
+
+1. **ngrokが起動しているか確認**
+   ```bash
+   # ターミナルでngrokプロセスを確認
+   ps aux | grep ngrok
+   ```
+
+2. **ngrokを再起動**
+   - 既存のngrokプロセスを停止（Ctrl+C）
+   - 新しいターミナルでngrokを起動:
+     ```bash
+     ngrok http 8000
+     ```
+
+3. **新しいURLを確認**
+   - ngrok起動時に表示される新しいHTTPS URLをコピー
+   - 例: `https://xxxx-xxx-xxx-xxx.ngrok-free.app`
+
+4. **LINE DevelopersコンソールでURLを更新**
+   - 新しいngrok URL + `/index.html` を設定
+   - 例: `https://xxxx-xxx-xxx-xxx.ngrok-free.app/index.html`
+
+5. **ローカルサーバーが起動しているか確認**
+   ```bash
+   # 別のターミナルで確認
+   cd frontend/liff-app
+   python3 -m http.server 8000
+   ```
+
+6. **ngrokダッシュボードで確認**（オプション）
+   - [ngrokダッシュボード](https://dashboard.ngrok.com/endpoints)にログイン
+   - アクティブなエンドポイントを確認
+
+### 問題5: LIFFアプリが表示されない
 
 **原因**: URLの設定ミスやngrokの接続が切れている
 
@@ -204,7 +248,7 @@ ngrok config add-authtoken YOUR_AUTH_TOKEN
 3. ローカルサーバーが起動しているか
 4. ngrokのWebインターフェース（http://127.0.0.1:4040）でリクエストが来ているか確認
 
-### 問題5: 認証APIが失敗する
+### 問題6: 認証APIが失敗する
 
 **原因**: APIエンドポイントのURLやIDトークンの問題
 
