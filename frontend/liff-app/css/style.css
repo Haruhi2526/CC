@@ -324,6 +324,16 @@ button {
     left: 380px;
 }
 
+#object34 {
+    top: 45px;
+    left: 330px;
+}
+
+#sevenEleven {
+    top: 115px;
+    left: 300px;
+}
+
 #locationModal {
     width: 500px;
     height: 710px;
@@ -346,6 +356,12 @@ button {
     width: 120px;
 }
 
+#rankingButton {
+    background-color: rgba(255, 0, 0, 0.4);
+    color: white;
+    margin-right: 1rem;
+}
+
 #uploadButton {
     background-color: #ccc;
 }
@@ -366,7 +382,7 @@ button {
     width: 60px;
 }
 
-#checkinButton:hover, #uploadButton.abled:hover {
+#checkinButton:hover, #uploadButton.abled:hover, #rankingButton:hover {
     background-color: rgba(255, 0, 0, 0.7);
 }
 
@@ -529,6 +545,10 @@ button {
     .login-content {
         padding: 32px 24px;
     }
+
+    #rankingButton {
+        margin-right: 0;
+    }
     
     .welcome-message,
     .stamps-list,
@@ -559,6 +579,16 @@ button {
     #BLD14-213 {
         top: 83px;
         left: 173px;
+    }
+
+    #object34 {
+        top: 15px;
+        left: 150px;
+    }
+
+    #sevenEleven {
+        top: 50px;
+        left: 140px;
     }
 
     #locationName {
