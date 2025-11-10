@@ -244,7 +244,7 @@ function displayUserInfo(authResponse) {
 async function loadStamps(userId) {
     if (!userId) {
         console.warn('ユーザーIDが指定されていません');
-        displayEmptyStamps();
+        // displayEmptyStamps();
         return;
     }
     
@@ -259,19 +259,20 @@ async function loadStamps(userId) {
         
         // レスポンスの検証と処理
         if (responseData && responseData.ok && Array.isArray(responseData.stamps)) {
-            if (responseData.stamps.length > 0) {
-                displayStamps(responseData.stamps);
-            } else {
-                displayEmptyStamps();
-            }
+            // if (responseData.stamps.length > 0) {
+            //     displayStamps(responseData.stamps);
+            // } else {
+            //     displayEmptyStamps();
+            // }
+            displayStamps(responseData.stamps);
         } else {
             console.warn('スタンプ一覧の形式が不正です:', responseData);
-            displayEmptyStamps();
+            // displayEmptyStamps();
         }
     } catch (error) {
         console.error('スタンプ一覧の取得に失敗しました:', error);
         // エラーでもアプリは続行（スタンプがない状態で表示）
-        displayEmptyStamps();
+        // displayEmptyStamps();
     }
 }
 
@@ -290,7 +291,8 @@ function displayStamps(stamps) {
         "BLD14-RM213": "assets/images/stamps/bld14213.png",
         "YIL-001": "assets/images/stamps/yil.png",
         "STATUE-001": "assets/images/stamps/statue.png",
-        "test": "assets/images/stamps/test.png"
+        "MONU-075": "assets/images/stamps/object34.png",
+        "SEV-001": "assets/images/stamps/seven-eleven.png"
     };
 
     // 取得済みスタンプIDを配列に
@@ -352,13 +354,13 @@ function showStampInfo(targetImg, stamp) {
 /**
  * スタンプが空の場合の表示
  */
-function displayEmptyStamps() {
-    if (elements.stampsContainer) {
-        elements.stampsContainer.innerHTML = '<p class="empty-message">スタンプがありません</p>';
-    }
-    // 空の場合も進捗リセット
-    updateProgress([]);
-}
+// function displayEmptyStamps() {
+//     if (elements.stampsContainer) {
+//         elements.stampsContainer.innerHTML = '<p class="empty-message">スタンプがありません</p>';
+//     }
+//     // 空の場合も進捗リセット
+//     updateProgress([]);
+// }
 
 /**
  * Unixタイムスタンプを日付文字列に変換

@@ -4,7 +4,9 @@
 const SPOT_IDS = {
     yil: "YIL-001",
     statue: "STATUE-001",
-    BLD14213: "BLD14-RM213"
+    BLD14213: "BLD14-RM213",
+    MONU075: "MONU-075",
+    SEV001: "SEV-001"
 };
 
 // 各スポットのスタンプ画像を定義
@@ -12,7 +14,8 @@ const stampImages = {
     "STATUE-001": "assets/images/stamps/statue.png",
     "YIL-001": "assets/images/stamps/yil.png",
     "BLD14-RM213": "assets/images/stamps/bld14213.png",
-    "test": "assets/images/stamps/test.png"
+    "MONU-075": "assets/images/stamps/object34.png",
+    "SEV-001": "assets/images/stamps/seven-eleven.png"
 };
 
 let selectedSpot = null;
@@ -110,6 +113,40 @@ document.getElementById("BLD14-213").addEventListener("click", async () => {
         locationImg.style.display = "block";
     };
     selectedSpot = "BLD14213";
+});
+
+// object34
+document.getElementById("object34").addEventListener("click", async () => {
+    locationModal.style.visibility = "visible";
+    mask.style.visibility = "visible";
+    locationModal.animate(showListKeyframes, options);
+    mask.animate(showListKeyframes, options);
+    locationName.textContent = "75th Monument";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/object34.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
+    selectedSpot = "MONU075";
+});
+
+// seven-eleven
+document.getElementById("sevenEleven").addEventListener("click", async () => {
+    locationModal.style.visibility = "visible";
+    mask.style.visibility = "visible";
+    locationModal.animate(showListKeyframes, options);
+    mask.animate(showListKeyframes, options);
+    locationName.textContent = "7-Eleven in Yagami";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/seven-eleven.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
+    selectedSpot = "SEV001";
 });
 
 closeButton.addEventListener("click", () => {
@@ -215,27 +252,6 @@ document.getElementById('checkinButton').onclick = async () => {
                         }
                         // 画像アップロード処理追加
                     }
-
-                    // const stampSrc = stampImages[spotIdToSend];
-                    // if (stampSrc) {
-                    //     const container = document.getElementById('stampsContainer');
-
-                    //     // 「スタンプがありません」を削除
-                    //     const emptyMsg = container.querySelector('.empty-message');
-                    //     if (emptyMsg) emptyMsg.remove();
-
-                    //     // 重複チェック（同じスタンプが既にあるか確認）
-                    //     if (!container.querySelector(`img[data-spot="${spotIdToSend}"]`)) {
-                    //         const img = document.createElement('img');
-                    //         img.src = stampSrc;
-                    //         img.alt = result.name || spotIdToSend;
-                    //         img.dataset.spot = spotIdToSend;
-                    //         img.classList.add('stamp');
-                    //         container.appendChild(img);
-                    //     }
-                    // } else {
-                    //     console.warn('スタンプ画像が見つかりません:', spotIdToSend);
-                    // }
                     // 現在のスタンプ取得状況を取得
                     const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
                     let userStamps = [];
@@ -261,8 +277,7 @@ document.getElementById('checkinButton').onclick = async () => {
 
                         // 再度スタンプ一覧を取得し、UIを再描画
                         try {
-                            const updatedStamps = await window.api.getUserStamps(userId);
-                            displayStamps(updatedStamps);
+                            await loadStamps(userId);
                         } catch (refreshError) {
                             console.error("スタンプ再取得エラー:", refreshError);
                         }
