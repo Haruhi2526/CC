@@ -227,10 +227,10 @@ cd backend/lambda/notify
 ### リッチメニューのテスト
 ```bash
 # リッチメニュー一覧取得
-curl -X GET https://{api-id}.execute-api.{region}.amazonaws.com/dev/richmenu/list
+curl -X GET https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev/richmenu/list
 
 # ユーザーにリッチメニュー設定
-curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/dev/richmenu/set \
+curl -X POST https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev/richmenu/set \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "YOUR_USER_ID",
@@ -240,7 +240,7 @@ curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/dev/richmenu/se
 
 ### プッシュ通知のテスト
 ```bash
-curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/dev/notify \
+curl -X POST https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev/notify \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "YOUR_USER_ID",
@@ -268,6 +268,98 @@ curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/dev/notify \
 ### エラーハンドリング
 - 通知失敗時もスタンプ授与は成功（非同期処理のため）
 - エラーはCloudWatch Logsで確認
+
+---
+
+## 🔧 トラブルシューティング
+
+### 400 Bad Request エラー
+
+#### 原因1: 無効なユーザーID
+**エラーメッセージ例:**
+```json
+{
+  "ok": false,
+  "error": "LINE API Error (400): Invalid user ID"
+}
+```
+
+**対処法:**
+- `YOUR_USER_ID`を実際のLINEユーザーIDに置き換える
+- ユーザーIDは`U`で始まる33文字の文字列（例: `U1234567890abcdef1234567890abcdef`）
+- LIFFアプリから取得: `liff.getProfile().then(profile => console.log(profile.userId))`
+
+#### 原因2: Channel Access Tokenが設定されていない
+**エラーメッセージ例:**
+```json
+{
+  "ok": false,
+  "error": "LINE_CHANNEL_ACCESS_TOKEN is not configured"
+}
+```
+
+**対処法:**
+1. LINE Developers ConsoleでChannel Access Tokenを発行
+2. AWS Lambda関数の環境変数に設定:
+   - キー: `LINE_CHANNEL_ACCESS_TOKEN`
+   - 値: 発行したトークン
+
+#### 原因3: Flex Messageの形式エラー
+**エラーメッセージ例:**
+```json
+{
+  "ok": false,
+  "error": "LINE API Error (400): Invalid request body"
+}
+```
+
+**対処法:**
+- Flex Messageの構造を確認
+- `altText`が設定されているか確認
+- 画像URLが有効か確認
+
+### 401 Unauthorized エラー
+
+**原因:** Channel Access Tokenが無効または期限切れ
+
+**対処法:**
+1. LINE Developers Consoleで新しいトークンを発行
+2. Lambda関数の環境変数を更新
+3. 関数を再デプロイ
+
+### 実際のユーザーIDの取得方法
+
+#### 方法1: LIFFアプリから取得
+```javascript
+// frontend/liff-app/js/app.js など
+liff.init({ liffId: CONFIG.LIFF_ID })
+  .then(() => {
+    if (liff.isLoggedIn()) {
+      liff.getProfile()
+        .then(profile => {
+          console.log('User ID:', profile.userId);
+          // このuserIdをテストに使用
+        });
+    }
+  });
+```
+
+#### 方法2: auth関数のレスポンスから取得
+認証APIのレスポンスにユーザーIDが含まれている場合、それを使用できます。
+
+### テスト時の注意点
+
+1. **実際のユーザーIDを使用**
+   - `YOUR_USER_ID`はプレースホルダーです
+   - 実際のLINEユーザーIDに置き換えてください
+
+2. **Channel Access Tokenの確認**
+   - Lambda関数の環境変数が正しく設定されているか確認
+   - トークンが有効期限内か確認
+
+3. **CloudWatch Logsで詳細を確認**
+   - Lambda関数のログを確認して、詳細なエラーメッセージを確認
+   - LINE APIからのエラーレスポンスが記録されています
 
 ---
 
