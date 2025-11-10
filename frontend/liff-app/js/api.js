@@ -121,9 +121,26 @@ async function apiCall(endpoint, options = {}) {
         
         return data;
     } catch (error) {
-        // ネットワークエラーなどの場合
+        // ネットワークエラーやCORSエラーの場合
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('ネットワークエラーが発生しました。インターネット接続を確認してください。');
+            // CORSエラーの可能性をチェック
+            // ブラウザのコンソールにCORSエラーが表示されている可能性がある
+            console.error('ネットワークエラーまたはCORSエラーの可能性:', {
+                error: error,
+                message: error.message,
+                url: url,
+                method: fetchOptions.method || 'GET'
+            });
+            
+            // エラーメッセージに詳細情報を追加
+            const errorMessage = 'ネットワークエラーが発生しました。\n' +
+                '考えられる原因:\n' +
+                '1. インターネット接続の問題\n' +
+                '2. API GatewayのCORS設定が不足している可能性\n' +
+                '3. API Gatewayが正しくデプロイされていない可能性\n\n' +
+                'ブラウザのコンソールでCORSエラーが表示されていないか確認してください。';
+            
+            throw new Error(errorMessage);
         }
         throw error;
     }
@@ -307,6 +324,88 @@ try {
             return await apiCall(endpoint, {
                 method: 'GET'
             });
+        },
+        
+        /**
+         * S3アップロード用のPresigned URLを取得
+         * @param {string} userId - ユーザーID
+         * @param {string} fileName - ファイル名（オプション）
+         * @returns {Promise} Presigned URL情報
+         */
+        async getS3UploadUrl(userId, fileName = null) {
+            const body = { user_id: userId };
+            if (fileName) {
+                body.file_name = fileName;
+            }
+            return await apiCall(CONFIG.API_ENDPOINTS.S3_UPLOAD_URL, {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+        },
+        
+        /**
+         * S3に画像をアップロード
+         * @param {string} uploadUrl - Presigned POST URL
+         * @param {object} fields - Presigned POST fields
+         * @param {File} file - アップロードするファイル
+         * @returns {Promise} アップロード結果
+         */
+        async uploadToS3(uploadUrl, fields, file) {
+            // FormDataを作成
+            const formData = new FormData();
+            
+            // Presigned POSTの場合、fieldsに含まれるすべてのフィールドを追加
+            // 重要: ファイルは最後に追加する必要がある
+            // fieldsには通常、key, policy, x-amz-algorithm, x-amz-credential, 
+            // x-amz-date, x-amz-signature, Content-Typeなどが含まれる
+            Object.keys(fields).forEach(key => {
+                formData.append(key, fields[key]);
+            });
+            
+            // ファイルを追加（Presigned POSTでは、ファイルは最後に追加）
+            // ファイルフィールド名は'file'で固定（S3のPresigned POSTの仕様）
+            // Content-Typeはfieldsに含まれている場合は、そのまま使用
+            formData.append('file', file);
+            
+            console.log('S3アップロード開始:', {
+                url: uploadUrl,
+                fields: fields,
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                formDataKeys: Array.from(formData.keys())
+            });
+            
+            // S3にアップロード
+            // 注意: Presigned POSTでは、Content-Typeヘッダーを設定しない
+            // FormDataが自動的にmultipart/form-dataを設定する
+            const response = await fetch(uploadUrl, {
+                method: 'POST',
+                body: formData
+                // ヘッダーは設定しない（FormDataが自動的に設定する）
+            });
+            
+            console.log('S3アップロードレスポンス:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('S3アップロードエラー:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorText: errorText
+                });
+                throw new Error(`S3アップロードに失敗しました: ${response.status} ${errorText}`);
+            }
+            
+            return {
+                ok: true,
+                status: response.status
+            };
         }
     };
     

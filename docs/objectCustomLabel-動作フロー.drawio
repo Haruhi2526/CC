@@ -1,0 +1,617 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="5.0" version="21.0.0" etag="drawio" type="device">
+  <diagram name="スタンプ取得動作フロー" id="flowchart">
+    <mxGraphModel dx="2000" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- 開始 -->
+        <mxCell id="start" value="開始&#xa;S3イベント受信" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="480" y="40" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- S3情報取得 -->
+        <mxCell id="s3info" value="S3情報取得&#xa;bucket, key" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="480" y="140" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- ユーザーID抽出 -->
+        <mxCell id="extract" value="ユーザーID抽出&#xa;extract_user_id_from_s3_key()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="480" y="240" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- ユーザーID判定 -->
+        <mxCell id="check_user" value="ユーザーID&#xa;取得できた？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="480" y="340" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Rekognition実行 -->
+        <mxCell id="rekognition" value="Rekognition Custom Labels&#xa;画像認識実行&#xa;MinConfidence=70%" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="480" y="480" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- ラベル判定 -->
+        <mxCell id="check_labels" value="ラベル&#xa;検出された？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="480" y="600" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- ラベルなし結果 -->
+        <mxCell id="no_labels" value="結果: ラベル未検出" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="600" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- ラベル検出結果 -->
+        <mxCell id="detected" value="検出ラベル抽出&#xa;Name, Confidence" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="480" y="720" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- ユーザーID再チェック -->
+        <mxCell id="check_user2" value="ユーザーID&#xa;存在する？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="480" y="820" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプ付与ループ開始 -->
+        <mxCell id="loop_start" value="各ラベルに対して&#xa;スタンプ付与処理" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="480" y="940" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプマスター検索 -->
+        <mxCell id="find_stamp" value="スタンプマスター検索&#xa;find_stamp_by_image_label()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1040" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプ存在チェック -->
+        <mxCell id="check_stamp_exists" value="スタンプマスター&#xa;存在する？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1140" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 有効期間チェック -->
+        <mxCell id="check_valid" value="有効期間チェック&#xa;ValidFrom, ValidTo" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1260" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプタイプチェック -->
+        <mxCell id="check_type" value="スタンプタイプ&#xa;IMAGE？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1380" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 重複チェック -->
+        <mxCell id="check_duplicate" value="重複チェック&#xa;check_stamp_exists()" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1500" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプ追加 -->
+        <mxCell id="add_stamp" value="スタンプ追加&#xa;add_user_stamp()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1620" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 通知送信 -->
+        <mxCell id="notify" value="通知送信（非同期）&#xa;send_notification_async()&#xa;notify関数呼び出し" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1720" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- 結果集計 -->
+        <mxCell id="aggregate" value="結果集計&#xa;awarded_stamps" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1840" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 結果返却 -->
+        <mxCell id="return" value="結果返却&#xa;JSON形式" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="480" y="1940" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- ユーザーIDなしメッセージ -->
+        <mxCell id="no_user_msg" value="結果: ユーザーID未取得" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="760" y="820" width="180" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプなし -->
+        <mxCell id="no_stamp" value="スタンプなし" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1140" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 無効期間 -->
+        <mxCell id="invalid_period" value="無効期間" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1260" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- タイプ不一致 -->
+        <mxCell id="invalid_type" value="タイプ不一致" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1380" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 重複 -->
+        <mxCell id="duplicate" value="重複" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1500" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- エッジ -->
+        <mxCell id="edge1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="start" target="s3info">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="s3info" target="extract">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="extract" target="check_user">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge4" value="Yes/No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_user" target="rekognition">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rekognition" target="check_labels">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge6" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_labels" target="no_labels">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge7" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_labels" target="detected">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="detected" target="check_user2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge9" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_user2" target="no_user_msg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge10" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_user2" target="loop_start">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="loop_start" target="find_stamp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="find_stamp" target="check_stamp_exists">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge13" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_stamp_exists" target="no_stamp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge14" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_stamp_exists" target="check_valid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge15" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_valid" target="invalid_period">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge16" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_valid" target="check_type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge17" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_type" target="invalid_type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge18" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_type" target="check_duplicate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge19" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_duplicate" target="duplicate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge20" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check_duplicate" target="add_stamp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="add_stamp" target="notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="notify" target="aggregate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="aggregate" target="return">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="no_labels" target="return">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="no_user_msg" target="return">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge26" value="次のラベル" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="no_stamp" target="loop_start">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="1170" />
+              <mxPoint x="160" y="970" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="edge27" value="次のラベル" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="invalid_period" target="loop_start">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="1290" />
+              <mxPoint x="160" y="970" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="edge28" value="次のラベル" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="invalid_type" target="loop_start">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="1410" />
+              <mxPoint x="160" y="970" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="edge29" value="次のラベル" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="duplicate" target="loop_start">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="1530" />
+              <mxPoint x="160" y="970" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="edge30" value="全ラベル処理完了" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="notify" target="aggregate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720" y="1760" />
+              <mxPoint x="720" y="1870" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- ========== GPSスタンプ取得フロー ========== -->
+        
+        <!-- タイトル: GPSスタンプ取得 -->
+        <mxCell id="gps_title" value="【GPSスタンプ取得フロー】" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="40" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- フロントエンド: チェックインボタン -->
+        <mxCell id="gps_start" value="開始&#xa;チェックインボタンクリック" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="100" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Geolocation API -->
+        <mxCell id="gps_geolocation" value="Geolocation API&#xa;現在位置取得" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="200" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- GPS検証API呼び出し -->
+        <mxCell id="gps_call_verify" value="GPS検証API呼び出し&#xa;verifyGPS()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="300" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- gps-verify関数: 開始 -->
+        <mxCell id="gps_verify_start" value="gps-verify関数&#xa;開始" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="400" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- OPTIONS処理 -->
+        <mxCell id="gps_verify_options" value="OPTIONSリクエスト&#xa;処理（CORS）" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="500" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- バリデーション -->
+        <mxCell id="gps_verify_validate" value="リクエストバリデーション&#xa;validate_gps_request()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="620" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプマスター取得 -->
+        <mxCell id="gps_verify_get_master" value="スタンプマスター取得&#xa;get_stamp_master()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="720" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- スタンプタイプチェック -->
+        <mxCell id="gps_verify_check_type" value="スタンプタイプ&#xa;GPS？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="820" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Location取得 -->
+        <mxCell id="gps_verify_get_location" value="Location情報取得&#xa;lat, lon, radius" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="940" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 距離計算 -->
+        <mxCell id="gps_verify_calc_distance" value="距離計算&#xa;Haversine公式" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1040" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 範囲判定 -->
+        <mxCell id="gps_verify_check_within" value="範囲内判定&#xa;distance &lt;= radius + accuracy" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1140" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- GPS検証結果返却 -->
+        <mxCell id="gps_verify_return" value="GPS検証結果返却&#xa;within, distanceM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1260" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- フロントエンド: 範囲内判定 -->
+        <mxCell id="gps_frontend_check" value="範囲内？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1360" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- award API呼び出し -->
+        <mxCell id="gps_call_award" value="award API呼び出し&#xa;awardStamp()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1480" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- award関数: 開始 -->
+        <mxCell id="gps_award_start" value="award関数&#xa;開始" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1580" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- award: OPTIONS処理 -->
+        <mxCell id="gps_award_options" value="OPTIONSリクエスト&#xa;処理（CORS）" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1680" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- award: バリデーション -->
+        <mxCell id="gps_award_validate" value="リクエストバリデーション&#xa;validate_award_request()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1800" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- award: スタンプマスター取得 -->
+        <mxCell id="gps_award_get_master" value="スタンプマスター取得&#xa;get_stamp_master()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1900" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- award: 有効期間チェック -->
+        <mxCell id="gps_award_check_valid" value="有効期間チェック&#xa;ValidFrom, ValidTo" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="2000" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- award: スタンプタイプチェック -->
+        <mxCell id="gps_award_check_type" value="スタンプタイプ&#xa;GPS一致？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="2120" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- award: 重複チェック -->
+        <mxCell id="gps_award_check_duplicate" value="重複チェック&#xa;check_stamp_exists()" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="2240" width="200" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- award: スタンプ追加 -->
+        <mxCell id="gps_award_add" value="スタンプ追加&#xa;add_user_stamp()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="2360" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- award: 通知送信 -->
+        <mxCell id="gps_award_notify" value="通知送信（非同期）&#xa;send_notification_async()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="2460" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- award: 結果返却 -->
+        <mxCell id="gps_award_return" value="結果返却&#xa;JSON形式" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="2560" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- エラー処理ノード -->
+        <mxCell id="gps_error_type" value="タイプ不一致" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="820" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_error_outside" value="範囲外" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1140" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_error_invalid" value="無効期間" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2000" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_error_type_mismatch" value="タイプ不一致" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2120" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_error_duplicate" value="重複" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="2240" width="160" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- GPSフローのエッジ -->
+        <mxCell id="gps_edge1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_start" target="gps_geolocation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_geolocation" target="gps_call_verify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_call_verify" target="gps_verify_start">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_start" target="gps_verify_options">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge5" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_options" target="gps_verify_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="540" />
+              <mxPoint x="1100" y="1290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="gps_edge6" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_options" target="gps_verify_validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_validate" target="gps_verify_get_master">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_get_master" target="gps_verify_check_type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge9" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_check_type" target="gps_error_type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge10" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_check_type" target="gps_verify_get_location">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_get_location" target="gps_verify_calc_distance">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_calc_distance" target="gps_verify_check_within">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge13" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_check_within" target="gps_error_outside">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge14" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_check_within" target="gps_verify_return">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_verify_return" target="gps_frontend_check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_frontend_check" target="gps_award_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1000" y="1400" />
+              <mxPoint x="1000" y="2590" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="gps_edge17" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_frontend_check" target="gps_call_award">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_call_award" target="gps_award_start">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_start" target="gps_award_options">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge20" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_options" target="gps_award_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="1720" />
+              <mxPoint x="1100" y="2590" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="gps_edge21" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_options" target="gps_award_validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_validate" target="gps_award_get_master">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_get_master" target="gps_award_check_valid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge24" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_check_valid" target="gps_error_invalid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge25" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_check_valid" target="gps_award_check_type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge26" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_check_type" target="gps_error_type_mismatch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge27" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_check_type" target="gps_award_check_duplicate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge28" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_check_duplicate" target="gps_error_duplicate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge29" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_check_duplicate" target="gps_award_add">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_add" target="gps_award_notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gps_edge31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_award_notify" target="gps_award_return">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- エラーから結果返却への接続 -->
+        <mxCell id="gps_edge32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_error_type" target="gps_verify_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="850" />
+              <mxPoint x="920" y="1290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="gps_edge33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_error_outside" target="gps_verify_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="1170" />
+              <mxPoint x="920" y="1290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="gps_edge34" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_error_invalid" target="gps_award_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="2030" />
+              <mxPoint x="920" y="2590" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="gps_edge35" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_error_type_mismatch" target="gps_award_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="2150" />
+              <mxPoint x="920" y="2590" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="gps_edge36" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="gps_error_duplicate" target="gps_award_return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="2270" />
+              <mxPoint x="920" y="2590" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- タイトル: 画像認識スタンプ取得 -->
+        <mxCell id="image_title" value="【画像認識スタンプ取得フロー】" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="480" y="0" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+

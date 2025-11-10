@@ -42,6 +42,43 @@ const locationImg = document.getElementById("location-img");
 const loadingPic = document.getElementById("loadingPic");
 const obtainedModal = document.getElementById('obtainedModal');
 const mask2 = document.getElementById('mask2');
+const photoInput = document.getElementById("photoInput");
+const uploadButton = document.getElementById("uploadButton");
+
+// ファイル選択時にアップロードボタンを有効化する関数
+function setupFileInputListener() {
+    const currentPhotoInput = document.getElementById("photoInput");
+    const currentUploadButton = document.getElementById("uploadButton");
+    
+    if (currentPhotoInput && currentUploadButton) {
+        // 既存のイベントリスナーを削除（重複を防ぐ）
+        const newPhotoInput = currentPhotoInput.cloneNode(true);
+        currentPhotoInput.parentNode.replaceChild(newPhotoInput, currentPhotoInput);
+        
+        newPhotoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const btn = document.getElementById("uploadButton");
+            
+            if (file && btn) {
+                // ファイルが選択されたら、ボタンが有効な場合のみ有効化
+                // （チェックイン後に有効化されている場合のみ）
+                if (btn.classList.contains('abled')) {
+                    btn.disabled = false;
+                    console.log('ファイルが選択されました。アップロードボタンを有効化しました。');
+                } else {
+                    console.log('ファイルが選択されましたが、チェックインが必要です。');
+                }
+            } else if (btn) {
+                btn.disabled = true;
+            }
+        });
+    }
+}
+
+// 初期設定
+if (photoInput && uploadButton) {
+    setupFileInputListener();
+}
 
 // スタンプ画像をUIに追加する共通関数
 function appendStampImage(spotId, nameIfAny) {
@@ -160,10 +197,19 @@ closeButton.addEventListener("click", () => {
         locationModal.style.visibility = "hidden";
         mask.style.visibility = "hidden";
         // リセット
-        document.getElementById('out').textContent = ""; 
-        document.getElementById("photoInput").value = "";
-        uploadButton.classList.remove('abled');
-        uploadButton.disabled = true;
+        const outElement = document.getElementById('out');
+        if (outElement) {
+            outElement.textContent = "";
+        }
+        const currentPhotoInput = document.getElementById("photoInput");
+        if (currentPhotoInput) {
+            currentPhotoInput.value = "";
+        }
+        const currentUploadButton = document.getElementById("uploadButton");
+        if (currentUploadButton) {
+            currentUploadButton.classList.remove('abled');
+            currentUploadButton.disabled = true;
+        }
     };
 });
 
@@ -237,61 +283,208 @@ document.getElementById('checkinButton').onclick = async () => {
                     `\nLon: ${longitude.toFixed(6)}` +
                     `\nDistance: ${result.distanceM || 0}m`;
                 
-                // 範囲内ならUIにスタンプを表示（ユーザーIDに関わらず）
+                // 範囲内ならUploadボタンを有効化（スタンプは画像認識成功時に付与）
                 if (inside) {
-                    obtainedModalShow(); // スタンプ獲得モーダル表示
-                    // ボタンを操作可能に
-                    uploadButton.classList.add('abled');
-                    uploadButton.disabled = false;
-
-                    uploadButton.onclick = async () => {
-                        const file = photoInput.files[0];
-                        if (!file) {
-                            alert('画像ファイルを選択してください。');
-                            return;
-                        }
-                        // 画像アップロード処理追加
-                    }
-                    // 現在のスタンプ取得状況を取得
-                    const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
-                    let userStamps = [];
-
-                    try {
-                        userStamps = await window.api.getUserStamps(userId);
-                    } catch (err) {
-                        console.error("スタンプ取得エラー:", err);
+                    // 現在のボタン要素を取得（DOMから直接取得）
+                    const currentUploadButton = document.getElementById("uploadButton");
+                    const currentPhotoInput = document.getElementById("photoInput");
+                    
+                    if (currentUploadButton) {
+                        // ボタンを操作可能に
+                        currentUploadButton.classList.add('abled');
+                        // ファイルが選択されている場合のみ有効化
+                        const hasFile = currentPhotoInput && currentPhotoInput.files && currentPhotoInput.files[0];
+                        currentUploadButton.disabled = !hasFile;
+                        
+                        console.log('チェックイン成功。アップロードボタンの状態:', {
+                            hasFile: hasFile,
+                            disabled: currentUploadButton.disabled,
+                            hasAbledClass: currentUploadButton.classList.contains('abled')
+                        });
                     }
 
-                    // すでに取得済みなら追加処理しない
-                    const alreadyObtained = userStamps.some(s => s.stamp_id === spotIdToSend);
-                    if (alreadyObtained) {
-                        console.log(`スタンプ「${spotIdToSend}」はすでに取得済みです`);
-                    } else {
-                        // バックエンドにスタンプ授与
-                        try {
-                            await window.api.awardStamp(userId, spotIdToSend, 'GPS');
-                            console.log('スタンプ授与成功');
-                        } catch (awardError) {
-                            console.error('スタンプ授与エラー:', awardError);
-                        }
+                    // ファイル選択イベントリスナーを再設定
+                    setupFileInputListener();
 
-                        // 再度スタンプ一覧を取得し、UIを再描画
-                        try {
-                            await loadStamps(userId);
-                        } catch (refreshError) {
-                            console.error("スタンプ再取得エラー:", refreshError);
-                        }
+                    // アップロードボタンのイベントリスナーを設定
+                    if (currentUploadButton) {
+                        // 既存のイベントリスナーを削除（重複を防ぐ）
+                        // 新しいボタンを作成して置き換え
+                        const newUploadButton = currentUploadButton.cloneNode(true);
+                        currentUploadButton.parentNode.replaceChild(newUploadButton, currentUploadButton);
+                        
+                        // 新しいボタン要素を取得
+                        const btn = document.getElementById("uploadButton");
+                        
+                        // ボタンの状態を再設定
+                        btn.classList.add('abled');
+                        const hasFile = currentPhotoInput && currentPhotoInput.files && currentPhotoInput.files[0];
+                        btn.disabled = !hasFile;
+                        
+                        // selectedSpotを保存（クロージャーで保持）
+                        const currentSelectedSpot = selectedSpot;
+                        
+                        btn.addEventListener('click', async () => {
+                            const currentInput = document.getElementById("photoInput");
+                            const currentBtn = document.getElementById("uploadButton");
+                            const file = currentInput ? currentInput.files[0] : null;
+                            
+                            if (!file) {
+                                alert('画像ファイルを選択してください。');
+                                return;
+                            }
+                            
+                            // ユーザーIDを取得
+                            const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
+                            if (!userId) {
+                                alert('ログインが必要です。');
+                                return;
+                            }
+                            
+                            // スポットIDを取得
+                            if (!currentSelectedSpot) {
+                                alert('スポットが選択されていません。');
+                                return;
+                            }
+                            
+                            const spotIdToSend = SPOT_IDS[currentSelectedSpot];
+                            if (!spotIdToSend) {
+                                alert('無効なスポットです。');
+                                return;
+                            }
+                            
+                            try {
+                                // アップロードボタンを無効化
+                                if (currentBtn) {
+                                    const originalText = currentBtn.textContent;
+                                    currentBtn.setAttribute('data-original-text', originalText);
+                                    currentBtn.disabled = true;
+                                    currentBtn.textContent = 'アップロード中...';
+                                }
+                                
+                                console.log('Presigned URLを取得中...', { userId, fileName: file.name, spotId: spotIdToSend });
+                                
+                                // Presigned URLを取得
+                                const uploadUrlResponse = await window.api.getS3UploadUrl(userId, file.name);
+                                
+                                console.log('Presigned URL取得結果:', uploadUrlResponse);
+                                
+                                if (!uploadUrlResponse || !uploadUrlResponse.ok) {
+                                    throw new Error('Presigned URLの取得に失敗しました');
+                                }
+                                
+                                console.log('S3にアップロード中...');
+                                
+                                // S3にアップロード
+                                await window.api.uploadToS3(
+                                    uploadUrlResponse.upload_url,
+                                    uploadUrlResponse.fields,
+                                    file
+                                );
+                                
+                                console.log('S3アップロード成功');
+                                
+                                // アップロード成功
+                                const outElement = document.getElementById('out');
+                                if (outElement) {
+                                    outElement.textContent = 
+                                        '画像をアップロードしました！\n画像認識処理中...\n（数秒後にスタンプが付与される場合があります）';
+                                }
+                                
+                                // スタンプ一覧を更新して、スタンプが付与されたか確認
+                                // 画像認識処理には数秒かかるため、複数回チェック
+                                let checkCount = 0;
+                                const maxChecks = 10; // 最大10回（約20秒間）
+                                const checkInterval = 2000; // 2秒間隔
+                                
+                                const checkStampAwarded = async () => {
+                                    try {
+                                        // 現在のスタンプ一覧を取得
+                                        const currentStamps = await window.api.getStamps(userId);
+                                        const stampIds = currentStamps.stamps ? currentStamps.stamps.map(s => s.stamp_id) : [];
+                                        
+                                        // このスポットのスタンプが付与されたか確認
+                                        const stampAwarded = stampIds.includes(spotIdToSend);
+                                        
+                                        if (stampAwarded) {
+                                            // スタンプが付与された
+                                            console.log('スタンプが付与されました:', spotIdToSend);
+                                            obtainedModalShow(); // スタンプ獲得モーダル表示
+                                            
+                                            if (outElement) {
+                                                outElement.textContent = 
+                                                    '画像認識成功！\nスタンプを獲得しました！';
+                                            }
+                                            
+                                            // スタンプ一覧を更新
+                                            if (typeof loadStamps === 'function') {
+                                                await loadStamps(userId);
+                                            } else if (window.loadStamps) {
+                                                await window.loadStamps(userId);
+                                            }
+                                        } else if (checkCount < maxChecks) {
+                                            // まだスタンプが付与されていない場合、再度チェック
+                                            checkCount++;
+                                            console.log(`スタンプ付与を確認中... (${checkCount}/${maxChecks})`);
+                                            setTimeout(checkStampAwarded, checkInterval);
+                                        } else {
+                                            // タイムアウト
+                                            console.log('スタンプ付与の確認がタイムアウトしました');
+                                            if (outElement) {
+                                                outElement.textContent = 
+                                                    '画像をアップロードしました。\n画像認識結果を確認中...\n（スタンプが付与されない場合は、画像が正しく認識されていない可能性があります）';
+                                            }
+                                            
+                                            // スタンプ一覧を更新（念のため）
+                                            if (typeof loadStamps === 'function') {
+                                                await loadStamps(userId);
+                                            } else if (window.loadStamps) {
+                                                await window.loadStamps(userId);
+                                            }
+                                        }
+                                    } catch (refreshError) {
+                                        console.error("スタンプ確認エラー:", refreshError);
+                                        // エラーが発生しても、スタンプ一覧を更新
+                                        try {
+                                            if (typeof loadStamps === 'function') {
+                                                await loadStamps(userId);
+                                            } else if (window.loadStamps) {
+                                                await window.loadStamps(userId);
+                                            }
+                                        } catch (e) {
+                                            console.error("スタンプ再取得エラー:", e);
+                                        }
+                                    }
+                                };
+                                
+                                // 最初のチェックを開始（3秒後）
+                                setTimeout(checkStampAwarded, 3000);
+                                
+                            } catch (error) {
+                                console.error('画像アップロードエラー:', error);
+                                alert('画像アップロードに失敗しました: ' + (error.message || error));
+                                const outElement = document.getElementById('out');
+                                if (outElement) {
+                                    outElement.textContent = 
+                                        'エラー: ' + (error.message || '画像アップロードに失敗しました');
+                                }
+                            } finally {
+                                // ボタンを再有効化
+                                const currentBtn = document.getElementById("uploadButton");
+                                if (currentBtn) {
+                                    currentBtn.disabled = false;
+                                    const originalText = currentBtn.getAttribute('data-original-text') || 'Upload';
+                                    currentBtn.textContent = originalText;
+                                }
+                            }
+                        });
                     }
-                }
-
-                // 認証済みユーザーのみバックエンドでスタンプ授与を試みる
-                if (inside && userId !== 'user123') {
-                    try {
-                        await window.api.awardStamp(userId, spotIdToSend, 'GPS');
-                        console.log('スタンプ授与成功');
-                    } catch (awardError) {
-                        console.error('スタンプ授与エラー:', awardError);
-                        // エラーは無視（既に取得済みなどの可能性がある）
+                } else {
+                    // 範囲外の場合、Uploadボタンを無効化
+                    const currentUploadButton = document.getElementById("uploadButton");
+                    if (currentUploadButton) {
+                        currentUploadButton.classList.remove('abled');
+                        currentUploadButton.disabled = true;
                     }
                 }
             } else {
