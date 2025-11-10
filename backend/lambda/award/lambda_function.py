@@ -1,7 +1,12 @@
 import json
+import os
 import time
+import boto3
 from dynamodb_utils import get_stamp_master, check_stamp_exists, add_user_stamp
 from response_utils import create_response, create_error_response
+
+# Lambdaクライアント（通知送信用）
+lambda_client = boto3.client('lambda')
 
 
 def validate_award_request(body: dict) -> tuple[bool, str, dict]:
@@ -127,6 +132,9 @@ def lambda_handler(event, context):
         try:
             result = add_user_stamp(user_id, stamp_id, method)
             
+            # スタンプ授与成功時に通知を送信（非同期）
+            send_notification_async(user_id, stamp_id, stamp_master)
+            
             # レスポンスの作成
             response_data = {
                 'ok': True,
@@ -146,4 +154,43 @@ def lambda_handler(event, context):
         return create_error_response(400, 'Invalid JSON format', 'INVALID_JSON')
     except Exception as e:
         return create_error_response(500, f'Internal Server Error: {str(e)}', 'INTERNAL_ERROR')
+
+
+def send_notification_async(user_id: str, stamp_id: str, stamp_master: dict):
+    """
+    スタンプ取得通知を非同期で送信
+    
+    Args:
+        user_id (str): ユーザーID
+        stamp_id (str): スタンプID
+        stamp_master (dict): スタンプマスタ情報
+    """
+    try:
+        # notify関数の関数名を環境変数から取得（デフォルト: notify）
+        notify_function_name = os.environ.get('NOTIFY_FUNCTION_NAME', 'notify')
+        
+        # 通知データの準備
+        stamp_name = stamp_master.get('Name', 'スタンプ')
+        stamp_image_url = stamp_master.get('ImageUrl', '')
+        
+        # notify関数を非同期で呼び出し
+        lambda_client.invoke(
+            FunctionName=notify_function_name,
+            InvocationType='Event',  # 非同期実行
+            Payload=json.dumps({
+                'httpMethod': 'POST',
+                'body': json.dumps({
+                    'user_id': user_id,
+                    'type': 'stamp_awarded',
+                    'data': {
+                        'stamp_id': stamp_id,
+                        'stamp_name': stamp_name,
+                        'stamp_image_url': stamp_image_url
+                    }
+                })
+            })
+        )
+    except Exception as e:
+        # 通知失敗はログのみ（スタンプ授与は成功）
+        print(f'Failed to send notification: {str(e)}')
 
