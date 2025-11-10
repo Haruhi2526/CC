@@ -4,6 +4,7 @@
 let elements;
 let currentPeriod = 'weekly';
 let currentRankings = [];
+let currentType = 'friends'; // 'friends' only
 
 // すべてのスクリプトが読み込まれるまで待つ
 function waitForScripts() {
@@ -77,6 +78,7 @@ function initializeRanking() {
     elements = {
         rankingsContainer: document.getElementById('rankingsContainer'),
         shareButton: document.getElementById('shareButton'),
+        inviteButton: document.getElementById('inviteButton'),
         tabs: document.querySelectorAll('.tab')
     };
 
@@ -109,10 +111,18 @@ function initializeAfterScriptsLoaded() {
         tab.addEventListener('click', () => {
             elements.tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            currentPeriod = tab.dataset.period;
-            loadRankings(currentPeriod);
+            currentType = tab.dataset.type || 'friends'; // デフォルトを'friends'に変更
+            currentPeriod = tab.dataset.period || 'weekly';
+            loadRankings(currentPeriod, currentType);
         });
     });
+
+    // 友達招待ボタンのイベントリスナー
+    if (elements.inviteButton) {
+        elements.inviteButton.addEventListener('click', async () => {
+            await inviteFriend();
+        });
+    }
 
     // LIFF初期化
     liff.init({ liffId: CONFIG.LIFF_ID })
@@ -124,12 +134,12 @@ function initializeAfterScriptsLoaded() {
             // シェアボタンの有効/無効を設定
             setupShareButton();
             
-            if (liff.isLoggedIn()) {
-                loadRankings(currentPeriod);
-            } else {
-                // 未ログインの場合はログイン画面にリダイレクト
-                liff.login();
-            }
+                if (liff.isLoggedIn()) {
+                    loadRankings(currentPeriod, currentType);
+                } else {
+                    // 未ログインの場合はログイン画面にリダイレクト
+                    liff.login();
+                }
         })
         .catch(error => {
             console.error('❌ LIFF初期化エラー:', error);
@@ -252,8 +262,8 @@ async function handleShare() {
 }
 
 // フォールバックシェア（URLコピー）
-async function fallbackShare() {
-    const shareUrl = `${window.location.origin}/ranking.html`;
+async function fallbackShare(customUrl = null) {
+    const shareUrl = customUrl || `${window.location.origin}/ranking.html`;
     
     try {
         // クリップボードAPIを試す
@@ -286,7 +296,7 @@ async function fallbackShare() {
 }
 
 // ランキング読み込み
-async function loadRankings(period) {
+async function loadRankings(period, type = 'friends') {
     try {
         if (!elements || !elements.rankingsContainer) {
             console.error('Elements not initialized');
@@ -300,9 +310,15 @@ async function loadRankings(period) {
             </div>
         `;
         
+        // すべてのランキングは友達ランキングを使用
+        const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
+        if (!userId) {
+            throw new Error('ログインが必要です');
+        }
+        
         const endpoint = period === 'weekly' 
-            ? '/ranking/weekly' 
-            : '/ranking/monthly';
+            ? `/ranking/friends/weekly?user_id=${encodeURIComponent(userId)}` 
+            : `/ranking/friends/monthly?user_id=${encodeURIComponent(userId)}`;
         
         // apiオブジェクトの存在確認
         if (!window.api || typeof window.api.getRankings !== 'function') {
@@ -311,15 +327,129 @@ async function loadRankings(period) {
         
         const response = await window.api.getRankings(endpoint);
         
+        // デバッグログ
+        console.log('📊 ランキングAPIレスポンス:', response);
+        console.log('📊 response.ok:', response.ok);
+        console.log('📊 response.rankings:', response.rankings);
+        console.log('📊 rankings.length:', response.rankings ? response.rankings.length : 0);
+        
         if (response.ok && response.rankings) {
             currentRankings = response.rankings;
+            console.log('✅ ランキングデータを取得しました。件数:', response.rankings.length);
             displayRankings(response.rankings);
         } else {
+            console.error('❌ ランキング取得失敗:', response);
             throw new Error(response.message || 'ランキングの取得に失敗しました');
         }
     } catch (error) {
         console.error('ランキング取得失敗:', error);
         showError(error.message || 'ランキングの取得に失敗しました');
+    }
+}
+
+// 友達を招待する機能
+async function inviteFriend() {
+    try {
+        const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
+        if (!userId) {
+            alert('ログインが必要です。');
+            // ログインを促す
+            if (typeof liff !== 'undefined' && liff.isLoggedIn()) {
+                // 既にログインしている場合は、認証情報を再取得
+                const idToken = liff.getIDToken();
+                if (idToken) {
+                    try {
+                        await window.api.auth(idToken);
+                        // 再試行
+                        const newUserId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
+                        if (newUserId) {
+                            await inviteFriendWithUserId(newUserId);
+                        }
+                    } catch (error) {
+                        console.error('認証エラー:', error);
+                        alert('認証に失敗しました。ページを再読み込みしてください。');
+                    }
+                }
+            } else if (typeof liff !== 'undefined') {
+                liff.login();
+            } else {
+                alert('ログインが必要です。LINEアプリからアクセスしてください。');
+            }
+            return;
+        }
+
+        await inviteFriendWithUserId(userId);
+    } catch (error) {
+        console.error('友達招待エラー:', error);
+        alert('友達招待に失敗しました。');
+    }
+}
+
+// ユーザーIDを使って友達を招待
+async function inviteFriendWithUserId(userId) {
+    try {
+        // 招待リンクを生成
+        const inviteUrl = `${window.location.origin}/index.html?invite=${encodeURIComponent(userId)}`;
+        
+        // 招待URLをクリップボードにコピー
+        await copyToClipboard(inviteUrl);
+        
+        // 成功メッセージを表示
+        alert('✅ 招待リンクをクリップボードにコピーしました！\n\n' + 
+              '友達にシェアしてください。\n\n' + 
+              inviteUrl);
+        
+        console.log('招待リンクをコピーしました:', inviteUrl);
+    } catch (error) {
+        console.error('友達招待エラー:', error);
+        alert('招待リンクのコピーに失敗しました。\n\n' + 
+              '以下のURLを手動でコピーしてください:\n\n' + 
+              `${window.location.origin}/index.html?invite=${encodeURIComponent(userId)}`);
+    }
+}
+
+// クリップボードにコピーする関数
+async function copyToClipboard(text) {
+    try {
+        // クリップボードAPIを試す（モダンブラウザ）
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+        
+        // フォールバック: 古いブラウザ用
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '0';
+        textArea.style.left = '0';
+        textArea.style.width = '2em';
+        textArea.style.height = '2em';
+        textArea.style.padding = '0';
+        textArea.style.border = 'none';
+        textArea.style.outline = 'none';
+        textArea.style.boxShadow = 'none';
+        textArea.style.background = 'transparent';
+        textArea.style.opacity = '0';
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            if (!successful) {
+                throw new Error('execCommand failed');
+            }
+        } catch (e) {
+            document.body.removeChild(textArea);
+            throw e;
+        }
+    } catch (error) {
+        console.error('クリップボードコピーエラー:', error);
+        throw error;
     }
 }
 
@@ -344,11 +474,13 @@ function displayRankings(rankings) {
     rankings.forEach((entry, index) => {
         const rank = entry.rank || (index + 1);
         const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+        const isSelf = entry.is_self || false;
+        const selfClass = isSelf ? 'self' : '';
         
         html += `
-            <li class="ranking-item ${rank <= 3 ? 'top-three' : ''}">
+            <li class="ranking-item ${rank <= 3 ? 'top-three' : ''} ${selfClass}">
                 <span class="rank">${medal} ${rank}位</span>
-                <span class="name">${escapeHtml(entry.display_name || 'Unknown')}</span>
+                <span class="name">${escapeHtml(entry.display_name || 'Unknown')}${isSelf ? ' (あなた)' : ''}</span>
                 <span class="count">${entry.stamp_count || 0}個</span>
             </li>
         `;
@@ -381,3 +513,4 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+

@@ -279,6 +279,34 @@ try {
             return await apiCall(endpoint, {
                 method: 'GET'
             });
+        },
+        
+        /**
+         * 友達関係を追加
+         * @param {string} userId - ユーザーID
+         * @param {string} friendId - 友達のユーザーID
+         * @returns {Promise} 追加結果
+         */
+        async addFriend(userId, friendId) {
+            return await apiCall('/friends/add', {
+                method: 'POST',
+                body: JSON.stringify({
+                    user_id: userId,
+                    friend_id: friendId
+                })
+            });
+        },
+        
+        /**
+         * 友達リストを取得
+         * @param {string} userId - ユーザーID
+         * @returns {Promise} 友達リスト
+         */
+        async getFriends(userId) {
+            const endpoint = `/friends/list?user_id=${encodeURIComponent(userId)}`;
+            return await apiCall(endpoint, {
+                method: 'GET'
+            });
         }
     };
     

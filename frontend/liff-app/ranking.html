@@ -20,8 +20,8 @@
     <main class="main-content">
         <!-- タブ切り替え -->
         <div class="tabs">
-            <button class="tab active" data-period="weekly">週間</button>
-            <button class="tab" data-period="monthly">月間</button>
+            <button class="tab active" data-type="friends" data-period="weekly">週間</button>
+            <button class="tab" data-type="friends" data-period="monthly">月間</button>
         </div>
         
         <!-- ランキング表示エリア -->
@@ -32,16 +32,17 @@
             </div>
         </div>
         
-        <!-- シェアボタン -->
+        <!-- アクションボタン -->
         <div class="action-buttons">
+            <button id="inviteButton" class="btn btn-secondary">友達を招待</button>
             <button id="shareButton" class="btn btn-primary">結果をシェア</button>
         </div>
     </main>
     
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/ranking.js"></script>
+    <script src="js/config.js?v=6"></script>
+    <script src="js/api.js?v=6"></script>
+    <script src="js/ranking.js?v=6"></script>
 </body>
 </html>
 
