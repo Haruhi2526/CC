@@ -18,6 +18,15 @@ const stampImages = {
     "SEV-001": "assets/images/stamps/seven-eleven.png"
 };
 
+// 各スポットの説明を定義
+const explanations = {
+    "STATUE-001": "藤原銀次郎先生の銅像である。17歳より慶應義塾に学び、1939年に資材を投じて藤原工業大学を設立。1944年に同大を慶應義塾に寄付し、慶應義塾大学工学部(現理工学部)となった。",
+    "YIL-001": "イノベーションの拠点として、人が集い、議論し、学び、挑戦する場所を提供するために、2025年に開設された。36棟前の奥行5mの細長い敷地にあり、うなぎ（eel）の寝床のような空間への親しみも込めて、「YIL（イール）」という愛称で呼ばれている。",
+    "BLD14-RM213": "14棟にあるディスカッションルームの一つであり、主にグループワークやミーティングに使用される。クラウドコンピューティング実験(本実験)は、主にこの教室で開催された。",
+    "MONU-075": "慶應義塾大学理工学部の創立75周年を記念して34棟に設置されたモニュメントである。理工学部の歴史と伝統を象徴し、未来への展望を示すものとして、学生や教職員に親しまれている。",
+    "SEV-001": "矢上キャンパス内にあるセブンイレブンであり、毎日多くの学生が利用している。食料品、飲料、日用品など、様々な商品を取り揃えており、学生生活をサポートしている。",
+};
+
 let selectedSpot = null;
 
 const showListKeyframes = {
@@ -79,6 +88,7 @@ function setupFileInputListener() {
 if (photoInput && uploadButton) {
     setupFileInputListener();
 }
+const out = document.getElementById('out');
 
 // スタンプ画像をUIに追加する共通関数
 function appendStampImage(spotId, nameIfAny) {
@@ -111,6 +121,7 @@ document.getElementById("yil").addEventListener("click", async () => {
     loadingPic.style.display = "";
     locationImg.style.display = "none";
     locationImg.src = "assets/images/yil.png";
+    out.textContent = explanations["YIL-001"];
     locationImg.onload = () => { // success
         loadingPic.style.display = "none";
         locationImg.style.display = "block";
@@ -128,6 +139,7 @@ document.getElementById("statue").addEventListener("click", async () => {
     loadingPic.style.display = "";
     locationImg.style.display = "none";
     locationImg.src = "assets/images/statue.png";
+    out.textContent = explanations["STATUE-001"];
     locationImg.onload = () => { // success
         loadingPic.style.display = "none";
         locationImg.style.display = "block";
@@ -145,6 +157,7 @@ document.getElementById("BLD14-213").addEventListener("click", async () => {
     loadingPic.style.display = "";
     locationImg.style.display = "none";
     locationImg.src = "assets/images/BLD14213.png";
+    out.textContent = explanations["BLD14-RM213"];
     locationImg.onload = () => { // success
         loadingPic.style.display = "none";
         locationImg.style.display = "block";
@@ -162,6 +175,7 @@ document.getElementById("object34").addEventListener("click", async () => {
     loadingPic.style.display = "";
     locationImg.style.display = "none";
     locationImg.src = "assets/images/object34.png";
+    out.textContent = explanations["MONU-075"];
     locationImg.onload = () => { // success
         loadingPic.style.display = "none";
         locationImg.style.display = "block";
@@ -179,6 +193,7 @@ document.getElementById("sevenEleven").addEventListener("click", async () => {
     loadingPic.style.display = "";
     locationImg.style.display = "none";
     locationImg.src = "assets/images/seven-eleven.png";
+    out.textContent = explanations["SEV-001"];
     locationImg.onload = () => { // success
         loadingPic.style.display = "none";
         locationImg.style.display = "block";
