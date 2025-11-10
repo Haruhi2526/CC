@@ -1,42 +1,125 @@
 // ランキング画面のロジック
 
-const elements = {
-    rankingsContainer: document.getElementById('rankingsContainer'),
-    shareButton: document.getElementById('shareButton'),
-    tabs: document.querySelectorAll('.tab')
-};
-
+// グローバル変数
+let elements;
 let currentPeriod = 'weekly';
 let currentRankings = [];
 
-// LIFF初期化
-liff.init({ liffId: CONFIG.LIFF_ID })
-    .then(() => {
-        if (liff.isLoggedIn()) {
-            loadRankings(currentPeriod);
-        } else {
-            // 未ログインの場合はログイン画面にリダイレクト
-            liff.login();
+// DOM読み込み完了後に初期化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeRanking);
+} else {
+    // DOMは既に読み込まれている
+    initializeRanking();
+}
+
+function initializeRanking() {
+    elements = {
+        rankingsContainer: document.getElementById('rankingsContainer'),
+        shareButton: document.getElementById('shareButton'),
+        tabs: document.querySelectorAll('.tab')
+    };
+
+    // apiオブジェクトが利用可能になるまで待つ
+    function waitForApi() {
+        return new Promise((resolve) => {
+            if (window.api && typeof window.api.getRankings === 'function') {
+                resolve();
+            } else {
+                // api.jsが読み込まれるまで待つ
+                const checkInterval = setInterval(() => {
+                    if (window.api && typeof window.api.getRankings === 'function') {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 50);
+                
+                // タイムアウト（5秒）
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    console.error('apiオブジェクトの読み込みタイムアウト');
+                    resolve(); // タイムアウトしても続行（エラーは後で発生）
+                }, 5000);
+            }
+        });
+    }
+
+    // LIFF初期化
+    waitForApi().then(() => {
+        if (!window.api || typeof window.api.getRankings !== 'function') {
+            console.error('api.getRankings is not available');
+            showError('APIモジュールの読み込みに失敗しました。ページを再読み込みしてください。');
+            return;
         }
-    })
-    .catch(error => {
-        console.error('LIFF初期化エラー:', error);
-        showError('アプリの初期化に失敗しました。ページを再読み込みしてください。');
+
+        liff.init({ liffId: CONFIG.LIFF_ID })
+            .then(() => {
+                if (liff.isLoggedIn()) {
+                    loadRankings(currentPeriod);
+                } else {
+                    // 未ログインの場合はログイン画面にリダイレクト
+                    liff.login();
+                }
+            })
+            .catch(error => {
+                console.error('LIFF初期化エラー:', error);
+                showError('アプリの初期化に失敗しました。ページを再読み込みしてください。');
+            });
     });
 
-// タブ切り替え
-elements.tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        elements.tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentPeriod = tab.dataset.period;
-        loadRankings(currentPeriod);
+    // タブ切り替え
+    elements.tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            elements.tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentPeriod = tab.dataset.period;
+            loadRankings(currentPeriod);
+        });
     });
-});
+
+    // シェア機能
+    elements.shareButton.addEventListener('click', async () => {
+        try {
+            if (typeof liff !== 'undefined' && liff.isApiAvailable('shareTargetPicker')) {
+                const shareUrl = `${window.location.origin}/ranking.html`;
+                const shareText = currentRankings.length > 0
+                    ? `🏆 スタンプラリーランキング（${currentPeriod === 'weekly' ? '週間' : '月間'}）\n\n` +
+                      `1位: ${currentRankings[0]?.display_name || 'Unknown'} (${currentRankings[0]?.stamp_count || 0}個)\n` +
+                      `あなたもスタンプを集めてランキングに参加しよう！\n\n${shareUrl}`
+                    : `スタンプラリーランキングを見てみて！\n${shareUrl}`;
+                
+                await liff.shareTargetPicker([
+                    {
+                        type: 'text',
+                        text: shareText
+                    }
+                ]);
+            } else {
+                // フォールバック: URLをクリップボードにコピー
+                const shareUrl = `${window.location.origin}/ranking.html`;
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert('URLをクリップボードにコピーしました');
+                } catch (e) {
+                    // クリップボードAPIが使えない場合
+                    prompt('以下のURLをコピーしてください:', shareUrl);
+                }
+            }
+        } catch (error) {
+            console.error('シェアエラー:', error);
+            alert('シェアに失敗しました');
+        }
+    });
+}
 
 // ランキング読み込み
 async function loadRankings(period) {
     try {
+        if (!elements || !elements.rankingsContainer) {
+            console.error('Elements not initialized');
+            return;
+        }
+
         elements.rankingsContainer.innerHTML = `
             <div class="loading">
                 <div class="loading-spinner"></div>
@@ -48,7 +131,12 @@ async function loadRankings(period) {
             ? '/ranking/weekly' 
             : '/ranking/monthly';
         
-        const response = await api.getRankings(endpoint);
+        // apiオブジェクトの存在確認
+        if (!window.api || typeof window.api.getRankings !== 'function') {
+            throw new Error('APIモジュールが読み込まれていません');
+        }
+        
+        const response = await window.api.getRankings(endpoint);
         
         if (response.ok && response.rankings) {
             currentRankings = response.rankings;
@@ -64,6 +152,11 @@ async function loadRankings(period) {
 
 // ランキング表示
 function displayRankings(rankings) {
+    if (!elements || !elements.rankingsContainer) {
+        console.error('Elements not initialized');
+        return;
+    }
+
     if (!rankings || rankings.length === 0) {
         elements.rankingsContainer.innerHTML = `
             <div class="empty-state">
@@ -94,6 +187,12 @@ function displayRankings(rankings) {
 
 // エラー表示
 function showError(message) {
+    if (!elements || !elements.rankingsContainer) {
+        console.error('Elements not initialized');
+        alert(message);
+        return;
+    }
+
     elements.rankingsContainer.innerHTML = `
         <div class="error">
             <div class="error-icon">⚠️</div>
@@ -109,38 +208,3 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-// シェア機能
-elements.shareButton.addEventListener('click', async () => {
-    try {
-        if (typeof liff !== 'undefined' && liff.isApiAvailable('shareTargetPicker')) {
-            const shareUrl = `${window.location.origin}/ranking.html`;
-            const shareText = currentRankings.length > 0
-                ? `🏆 スタンプラリーランキング（${currentPeriod === 'weekly' ? '週間' : '月間'}）\n\n` +
-                  `1位: ${currentRankings[0]?.display_name || 'Unknown'} (${currentRankings[0]?.stamp_count || 0}個)\n` +
-                  `あなたもスタンプを集めてランキングに参加しよう！\n\n${shareUrl}`
-                : `スタンプラリーランキングを見てみて！\n${shareUrl}`;
-            
-            await liff.shareTargetPicker([
-                {
-                    type: 'text',
-                    text: shareText
-                }
-            ]);
-        } else {
-            // フォールバック: URLをクリップボードにコピー
-            const shareUrl = `${window.location.origin}/ranking.html`;
-            try {
-                await navigator.clipboard.writeText(shareUrl);
-                alert('URLをクリップボードにコピーしました');
-            } catch (e) {
-                // クリップボードAPIが使えない場合
-                prompt('以下のURLをコピーしてください:', shareUrl);
-            }
-        }
-    } catch (error) {
-        console.error('シェアエラー:', error);
-        alert('シェアに失敗しました');
-    }
-});
-
