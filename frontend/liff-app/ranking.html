@@ -12,33 +12,31 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="wrapper">
-        <header class="app-header">
-            <h1>🏆 ランキング</h1>
-            <a href="index.html" class="btn btn-secondary btn-small">ホームに戻る</a>
-        </header>
+    <header class="app-header">
+        <h1>🏆 ランキング</h1>
+        <a href="index.html" class="btn btn-secondary btn-small">ホームに戻る</a>
+    </header>
+    
+    <main class="main-content">
+        <!-- タブ切り替え -->
+        <div class="tabs">
+            <button class="tab active" data-period="weekly">週間</button>
+            <button class="tab" data-period="monthly">月間</button>
+        </div>
         
-        <main class="main-content">
-            <!-- タブ切り替え -->
-            <div class="tabs">
-                <button class="tab active" data-period="weekly">週間</button>
-                <button class="tab" data-period="monthly">月間</button>
+        <!-- ランキング表示エリア -->
+        <div id="rankingsContainer" class="rankings-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>読み込み中...</p>
             </div>
-            
-            <!-- ランキング表示エリア -->
-            <div id="rankingsContainer" class="rankings-container">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <p>読み込み中...</p>
-                </div>
-            </div>
-            
-            <!-- シェアボタン -->
-            <div class="action-buttons">
-                <button id="shareButton" class="btn btn-primary">結果をシェア</button>
-            </div>
-        </main>
-    </div>
+        </div>
+        
+        <!-- シェアボタン -->
+        <div class="action-buttons">
+            <button id="shareButton" class="btn btn-primary">結果をシェア</button>
+        </div>
+    </main>
     
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="js/config.js"></script>

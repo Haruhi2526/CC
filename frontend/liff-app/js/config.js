@@ -24,4 +24,9 @@ const CONFIG = {
 };
 
 // エクスポート（グローバルスコープ）
-window.CONFIG = CONFIG;
+try {
+    window.CONFIG = CONFIG;
+    console.log('✅ CONFIGオブジェクトをwindowにエクスポートしました');
+} catch (error) {
+    console.error('❌ CONFIGオブジェクトのエクスポートに失敗:', error);
+}
