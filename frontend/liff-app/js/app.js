@@ -286,16 +286,67 @@ function displayStamps(stamps) {
     
     elements.stampsContainer.innerHTML = '';
     
-    stamps.forEach(stamp => {
+    const stampImages = {
+        "BLD14-RM213": "assets/images/stamps/bld14213.png",
+        "YIL-001": "assets/images/stamps/yil.png",
+        "STATUE-001": "assets/images/stamps/statue.png",
+        "test": "assets/images/stamps/test.png"
+    };
+
+    // 取得済みスタンプIDを配列に
+    const obtainedIds = stamps.map(s => s.stamp_id);
+
+    Object.entries(stampImages).forEach(([stampId, imgSrc]) => {
         const stampElement = document.createElement('div');
         stampElement.className = 'stamp-item';
-        stampElement.innerHTML = `
-            <h3>${stamp.name || stamp.stamp_id}</h3>
-            <p>${stamp.description || ''}</p>
-            <small>取得日時: ${formatDate(stamp.collected_at)}</small>
-        `;
+
+        // スタンプ画像を表示
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.alt = stampId;
+        img.classList.add('stamp'); // script.jsと同じclassにすると統一される
+        const obtainedStamp = stamps.find(s => s.stamp_id === stampId);
+        if (obtainedStamp) {
+            // 取得済み
+            img.classList.add('obtained');
+            img.addEventListener('click', (e) => {
+                showStampInfo(e.currentTarget, obtainedStamp);
+            });
+        } else {
+            // 未取得 → 半透明に
+            img.classList.add('not-obtained');
+        }
+        stampElement.appendChild(img);
+
         elements.stampsContainer.appendChild(stampElement);
     });
+
+    // バックエンドから取得したデータを使って進捗更新
+    updateProgress(stamps);
+}
+
+function showStampInfo(targetImg, stamp) {
+    // 既存の吹き出しがあれば削除
+    const existing = targetImg.parentElement.querySelector('.stamp-info');
+    if (existing) existing.remove();
+
+    // 吹き出し要素を作成
+    const infoBox = document.createElement('div');
+    infoBox.className = 'stamp-info';
+    infoBox.innerHTML = `
+        <strong>${stamp.name || stamp.stamp_id}</strong><br>
+        <small>${formatDate(stamp.collected_at)}</small>
+    `;
+
+    // 親要素に追加（画像の上に表示）
+    targetImg.parentElement.style.position = 'relative';
+    targetImg.parentElement.appendChild(infoBox);
+
+    // 3秒後に自動でフェードアウトして削除
+    setTimeout(() => {
+        infoBox.classList.add('fade-out');
+        setTimeout(() => infoBox.remove(), 400); // フェード終了後に削除
+    }, 2000); // 2秒表示
 }
 
 /**
@@ -305,6 +356,8 @@ function displayEmptyStamps() {
     if (elements.stampsContainer) {
         elements.stampsContainer.innerHTML = '<p class="empty-message">スタンプがありません</p>';
     }
+    // 空の場合も進捗リセット
+    updateProgress([]);
 }
 
 /**
@@ -319,6 +372,24 @@ function formatDate(timestamp) {
     const date = new Date(timestamp * 1000);
     return date.toLocaleString('ja-JP');
 }
+
+/**
+ * スタンプ進捗を更新
+ * @param {Array} stamps - 取得済みスタンプ配列
+ */
+function updateProgress(stamps = []) {
+    const totalSpots = Object.keys(stampImages).length; // 全スポット数
+    const obtained = stamps.length;
+    const ratio = totalSpots > 0 ? obtained / totalSpots : 0;
+    const percent = Math.round(ratio * 100);
+
+    const textEl = document.getElementById('progressText');
+    const fillEl = document.getElementById('progressFill');
+
+    if (textEl) textEl.textContent = `${percent}%（${obtained}/${totalSpots}）`;
+    if (fillEl) fillEl.style.width = `${percent}%`;
+}
+
 
 /**
  * LIFF SDKの読み込みを待つ

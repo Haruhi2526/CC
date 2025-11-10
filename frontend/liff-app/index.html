@@ -15,9 +15,11 @@
 <body>
     <div id="liffAppContent">
         <!-- ローディング表示 -->
-        <div id="loading" class="loading">
-            <div class="loading-spinner"></div>
-            <p>読み込み中...</p>
+        <div class="wrapper">
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>読み込み中...</p>
+            </div>
         </div>
         
         <!-- エラー表示 -->
@@ -69,8 +71,9 @@
 
                 <!-- locationModal -->
                 <section id="locationModal">
-                    <!-- <div class="wrapper">
-                        <div id="loadMonthPic" class="intersecting-circles-spinner">
+                    <div id="locationName">Location Name</div>
+                    <div class="wrapper">
+                        <div id="loadingPic" class="intersecting-circles-spinner">
                             <div class="spinnerBlock">
                                 <span class="circle"></span>
                                 <span class="circle"></span>
@@ -81,14 +84,17 @@
                                 <span class="circle"></span>
                             </div>
                         </div>
-                        <img id="spot-pic" src="" alt="" width="70%" style="display:none;">
-                    </div> -->
-                    <div id="locationName">Location Name</div>
+                        <img src="" alt="location-image" id="location-img" style="display: none;">
+                    </div>
                     <div class="wrapper">
-                        <img src="" alt="location-image" id="location-img">
+                        <!-- 画像アップロードボタン -->
+                        <div id="uploadSection">
+                            <input type="file" id="photoInput" accept="image/*">
+                        </div>
                     </div>
                     <div class="wrapper">
                         <button id="checkinButton">Check In</button>
+                        <button id="uploadButton" disabled>Upload</button>
                     </div>
                     <div class="wrapper">
                         <pre id="out"></pre>
@@ -98,10 +104,21 @@
                     </div>
                 </section>
                 <div id="mask"></div>
+
+                <div id="obtainedModal">
+                    <div class="wrapper">
+                        <img src="assets/images/obtained.png" alt="スタンプを獲得しました！" id="obtained-img">
+                    </div>
+                </div>
+                <div id="mask2"></div>
                 
                 <!-- スタンプ一覧エリア -->
                 <div id="stampsList" class="stamps-list">
-                    <h2>取得したスタンプ</h2>
+                    <h2>スタンプ一覧</h2>
+                    <p>進捗度: <span id="progressText">0%</span></p>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
                     <div id="stampsContainer" class="stamps-container">
                         <p class="empty-message">スタンプがありません</p>
                     </div>

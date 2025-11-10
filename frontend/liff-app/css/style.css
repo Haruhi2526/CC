@@ -56,6 +56,7 @@ button {
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 16px;
+    margin-left: 1rem;
 }
 
 @keyframes spin {
@@ -207,7 +208,7 @@ button {
 }
 
 .stamps-list {
-    height: 300px;
+    height: 610px;
 }
 
 .welcome-message h2, .stamps-list h2, .yagami-map h2 {
@@ -225,6 +226,10 @@ button {
     width: 700px;
 }
 
+#out {
+    font-family: Philosopher;
+}
+
 .stamps-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -233,6 +238,7 @@ button {
 
 .stamp {
     width: 200px;
+    cursor: pointer;
 }
 
 .empty-message {
@@ -240,6 +246,49 @@ button {
     color: #999;
     padding: 40px 20px;
     font-size: 14px;
+}
+
+.stamp-item {
+    position: relative;
+    display: inline-block;
+}
+
+.stamp-info {
+    position: absolute;
+    bottom: 100%; /* 画像の上側に配置 */
+    left: 45%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    white-space: nowrap;
+    text-align: center;
+    opacity: 0;
+    animation: fadeInUp 0.3s forwards;
+    z-index: 10;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translate(-50%, 0px); }
+    to { opacity: 1; transform: translate(-50%, -8px); }
+}
+
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.stamp.obtained {
+    opacity: 1;
+}
+
+.stamp.not-obtained {
+    opacity: 0.3;
+    filter: grayscale(80%);
+    cursor: default;
 }
 
 .image-container {
@@ -277,11 +326,11 @@ button {
 
 #locationModal {
     width: 500px;
-    height: 700px;
+    height: 710px;
     background-color: white;
     border-radius: 16px;
     position: absolute;
-    inset: 5rem 0 auto;
+    inset: 4rem 0 auto;
     margin: auto;
     z-index: 9999;
     opacity: 0;
@@ -290,11 +339,24 @@ button {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-#checkinButton {
+#checkinButton, #uploadButton {
     background-color: rgba(255, 0, 0, 0.4);
-    margin: 2rem 0;
+    margin: 0 2rem 1.5rem;
     height: 50px;
     width: 120px;
+}
+
+#uploadButton {
+    background-color: #ccc;
+}
+
+#uploadButton.abled {
+    background-color: rgba(255, 0, 0, 0.4);
+    cursor: pointer;
+}
+
+#uploadSection {
+    margin: 1.5rem 0 1.5rem 5rem;
 }
 
 #closeButton, #closeMyPageButton {
@@ -304,7 +366,7 @@ button {
     width: 60px;
 }
 
-#checkinButton:hover {
+#checkinButton:hover, #uploadButton.abled:hover {
     background-color: rgba(255, 0, 0, 0.7);
 }
 
@@ -323,13 +385,139 @@ button {
 
 #locationName {
     text-align: center;
-    font-size: 2rem;
-    margin-top: 2rem;
+    font-size: 2.5rem;
+    margin-top: 1.2rem;
 }
 
 #location-img {
-    margin-top: 2rem;
+    margin-top: 1.2rem;
     height: 250px;
+}
+
+#obtainedModal {
+    width: 300px;
+    height: 240px;
+    background-color: white;
+    border-radius: 16px;
+    position: fixed;
+    top: 30%;
+    left: 40%;
+    margin: auto;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.5s ease;
+}
+
+#obtained-img {
+    width: 280px;
+}
+
+#mask2 {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 16px;
+    background-color: #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1rem 0 2rem;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #4caf50, #81c784);
+    transition: width 0.4s ease;
+}
+
+/* Loading Spinner */
+#loadingPic {
+    height: 280px;
+}
+
+.intersecting-circles-spinner, .intersecting-circles-spinner * {
+    box-sizing: border-box;
+}
+
+.intersecting-circles-spinner {
+    height: 70px;
+    width: 70px;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.intersecting-circles-spinner .spinnerBlock {
+    animation: intersecting-circles-spinners-animation 1200ms linear infinite;
+    transform-origin: center;
+    display: block;
+    height: 35px;
+    width: 35px;
+}
+
+.intersecting-circles-spinner .circle {
+    display: block;
+    border: 2px solid #4caf50;
+    border-radius: 50%;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.intersecting-circles-spinner .circle:nth-child(1) {
+    left: 0;
+    top: 0;
+}
+
+.intersecting-circles-spinner .circle:nth-child(2) {
+    left: calc(35px * -0.36);
+    top: calc(35px * 0.2);
+}
+
+.intersecting-circles-spinner .circle:nth-child(3) {
+    left: calc(35px * -0.36);
+    top: calc(35px * -0.2);
+}
+
+.intersecting-circles-spinner .circle:nth-child(4) {
+    left: 0;
+    top: calc(35px * -0.36);
+}
+
+.intersecting-circles-spinner .circle:nth-child(5) {
+    left: calc(35px * 0.36);
+    top: calc(35px * -0.2);
+}
+
+.intersecting-circles-spinner .circle:nth-child(6) {
+    left: calc(35px * 0.36);
+    top: calc(35px * 0.2);
+}
+
+.intersecting-circles-spinner .circle:nth-child(7) {
+    left: 0;
+    top: calc(35px * 0.36);
+}
+
+@keyframes intersecting-circles-spinners-animation {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* レスポンシブ対応 */
@@ -364,8 +552,8 @@ button {
     }
 
     #statue {
-        top: 50px;
-        left: 250px;
+        top: 60px;
+        left: 210px;
     }
 
     #BLD14-213 {
@@ -373,8 +561,26 @@ button {
         left: 173px;
     }
 
+    #locationName {
+        font-size: 2rem;
+        margin-top: 1rem;
+    }
+
     #location-img {
         height: 180px;
+        margin-top: 1rem;
+    }
+
+    #checkinButton, #uploadButton {
+        margin: 0 1rem 1.5rem;
+    }
+
+    #loadingPic {
+        height: 210px;
+    }
+
+    #obtainedModal {
+        left: 12%;
     }
 
     .stamp {
@@ -382,9 +588,13 @@ button {
     }
 
     .stamps-list {
-        height: 200px;
+        height: 400px;
     }
-    
+
+    .stamp-info {
+        left: 50%;
+    }
+        
     .app-header h1 {
         font-size: 18px;
     }

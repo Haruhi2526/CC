@@ -12,8 +12,7 @@ const stampImages = {
     "STATUE-001": "assets/images/stamps/statue.png",
     "YIL-001": "assets/images/stamps/yil.png",
     "BLD14-RM213": "assets/images/stamps/bld14213.png",
-    // 新規スポット（35.57146607574908, 139.64540828242127）
-    "CUSTOM-001": "assets/images/stamps/custom001.png"
+    "test": "assets/images/stamps/test.png"
 };
 
 let selectedSpot = null;
@@ -35,7 +34,11 @@ const myPageButton = document.getElementById("myPageButton");
 const locationModal = document.getElementById("locationModal");
 const closeButton = document.getElementById("closeButton");
 const mask = document.getElementById("mask");
-const locationName = document.getElementById("locationName")
+const locationName = document.getElementById("locationName");
+const locationImg = document.getElementById("location-img");
+const loadingPic = document.getElementById("loadingPic");
+const obtainedModal = document.getElementById('obtainedModal');
+const mask2 = document.getElementById('mask2');
 
 // スタンプ画像をUIに追加する共通関数
 function appendStampImage(spotId, nameIfAny) {
@@ -65,17 +68,30 @@ document.getElementById("yil").addEventListener("click", async () => {
     locationModal.animate(showListKeyframes, options);
     mask.animate(showListKeyframes, options);
     locationName.textContent = "YIL Entrance";
-    document.getElementById("location-img").src = "assets/images/yil.png";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/yil.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
     selectedSpot = "yil";
 });
 
+// statue
 document.getElementById("statue").addEventListener("click", async () => {
     locationModal.style.visibility = "visible";
     mask.style.visibility = "visible";
     locationModal.animate(showListKeyframes, options);
     mask.animate(showListKeyframes, options);
     locationName.textContent = "Mr.Fujiwara Statue";
-    document.getElementById("location-img").src = "assets/images/statue.png";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/statue.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
     selectedSpot = "statue";
 });
 
@@ -86,7 +102,13 @@ document.getElementById("BLD14-213").addEventListener("click", async () => {
     locationModal.animate(showListKeyframes, options);
     mask.animate(showListKeyframes, options);
     locationName.textContent = "14-213 Classroom";
-    document.getElementById("location-img").src = "assets/images/BLD14213.png";
+    loadingPic.style.display = "";
+    locationImg.style.display = "none";
+    locationImg.src = "assets/images/BLD14213.png";
+    locationImg.onload = () => { // success
+        loadingPic.style.display = "none";
+        locationImg.style.display = "block";
+    };
     selectedSpot = "BLD14213";
 });
 
@@ -100,7 +122,11 @@ closeButton.addEventListener("click", () => {
         isAnimating = false;
         locationModal.style.visibility = "hidden";
         mask.style.visibility = "hidden";
-        document.getElementById('out').textContent = ""; // リセット
+        // リセット
+        document.getElementById('out').textContent = ""; 
+        document.getElementById("photoInput").value = "";
+        uploadButton.classList.remove('abled');
+        uploadButton.disabled = true;
     };
 });
 
@@ -108,6 +134,26 @@ closeButton.addEventListener("click", () => {
 mask.addEventListener("click", () => {
     closeButton.dispatchEvent(new PointerEvent("click"));
 });
+
+function obtainedModalShow() {
+    // 表示（フェードイン）
+    obtainedModal.style.display = 'block';
+    mask2.style.display = 'block';
+    requestAnimationFrame(() => {
+        obtainedModal.style.opacity = '1';
+        mask2.style.opacity = '1';
+    });
+
+    // 3秒後にフェードアウトして非表示にする
+    setTimeout(() => {
+        obtainedModal.style.opacity = '0';
+        mask2.style.opacity = '0';
+        setTimeout(() => {
+            obtainedModal.style.display = 'none';
+            mask2.style.display = 'none';
+        }, 500); // フェードアウト時間と合わせる
+    }, 3000);
+}
 
 document.getElementById('checkinButton').onclick = async () => {
     if (!selectedSpot) {
@@ -149,33 +195,77 @@ document.getElementById('checkinButton').onclick = async () => {
         // 画面出力
         document.getElementById('out').textContent =
         (inside ? "範囲内 ✅" : "範囲外 ❌") +
-                    `\nname: ${result.name || ''}` +
-                    `\nlat: ${latitude.toFixed(6)}` +
-                    `\nlon: ${longitude.toFixed(6)}` +
-                    `\ndistanceM: ${result.distanceM || 0}m` +
-                    `\nradiusM: ${result.radiusM || 100}m`;
+                    `\nName: ${result.name || ''}` +
+                    `\nLat: ${latitude.toFixed(6)}` +
+                    `\nLon: ${longitude.toFixed(6)}` +
+                    `\nDistance: ${result.distanceM || 0}m`;
                 
                 // 範囲内ならUIにスタンプを表示（ユーザーIDに関わらず）
                 if (inside) {
-                    const stampSrc = stampImages[spotIdToSend];
-                    if (stampSrc) {
-                        const container = document.getElementById('stampsContainer');
+                    obtainedModalShow(); // スタンプ獲得モーダル表示
+                    // ボタンを操作可能に
+                    uploadButton.classList.add('abled');
+                    uploadButton.disabled = false;
 
-                        // 「スタンプがありません」を削除
-                        const emptyMsg = container.querySelector('.empty-message');
-                        if (emptyMsg) emptyMsg.remove();
-
-                        // 重複チェック（同じスタンプが既にあるか確認）
-                        if (!container.querySelector(`img[data-spot="${spotIdToSend}"]`)) {
-                            const img = document.createElement('img');
-                            img.src = stampSrc;
-                            img.alt = result.name || spotIdToSend;
-                            img.dataset.spot = spotIdToSend;
-                            img.classList.add('stamp');
-                            container.appendChild(img);
+                    uploadButton.onclick = async () => {
+                        const file = photoInput.files[0];
+                        if (!file) {
+                            alert('画像ファイルを選択してください。');
+                            return;
                         }
+                        // 画像アップロード処理追加
+                    }
+
+                    // const stampSrc = stampImages[spotIdToSend];
+                    // if (stampSrc) {
+                    //     const container = document.getElementById('stampsContainer');
+
+                    //     // 「スタンプがありません」を削除
+                    //     const emptyMsg = container.querySelector('.empty-message');
+                    //     if (emptyMsg) emptyMsg.remove();
+
+                    //     // 重複チェック（同じスタンプが既にあるか確認）
+                    //     if (!container.querySelector(`img[data-spot="${spotIdToSend}"]`)) {
+                    //         const img = document.createElement('img');
+                    //         img.src = stampSrc;
+                    //         img.alt = result.name || spotIdToSend;
+                    //         img.dataset.spot = spotIdToSend;
+                    //         img.classList.add('stamp');
+                    //         container.appendChild(img);
+                    //     }
+                    // } else {
+                    //     console.warn('スタンプ画像が見つかりません:', spotIdToSend);
+                    // }
+                    // 現在のスタンプ取得状況を取得
+                    const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
+                    let userStamps = [];
+
+                    try {
+                        userStamps = await window.api.getUserStamps(userId);
+                    } catch (err) {
+                        console.error("スタンプ取得エラー:", err);
+                    }
+
+                    // すでに取得済みなら追加処理しない
+                    const alreadyObtained = userStamps.some(s => s.stamp_id === spotIdToSend);
+                    if (alreadyObtained) {
+                        console.log(`スタンプ「${spotIdToSend}」はすでに取得済みです`);
                     } else {
-                        console.warn('スタンプ画像が見つかりません:', spotIdToSend);
+                        // バックエンドにスタンプ授与
+                        try {
+                            await window.api.awardStamp(userId, spotIdToSend, 'GPS');
+                            console.log('スタンプ授与成功');
+                        } catch (awardError) {
+                            console.error('スタンプ授与エラー:', awardError);
+                        }
+
+                        // 再度スタンプ一覧を取得し、UIを再描画
+                        try {
+                            const updatedStamps = await window.api.getUserStamps(userId);
+                            displayStamps(updatedStamps);
+                        } catch (refreshError) {
+                            console.error("スタンプ再取得エラー:", refreshError);
+                        }
                     }
                 }
 
