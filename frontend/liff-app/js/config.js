@@ -1,7 +1,7 @@
 // API設定
 const CONFIG = {
     // API Gatewayエンドポイント
-    API_BASE_URL: 'https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev',
+    API_BASE_URL: 'https://c5nmu4q3di.execute-api.us-east-1.amazonaws.com/dev',
     
     // LIFF ID（環境に応じて変更）
     // LINE Developersコンソールで取得
@@ -19,7 +19,8 @@ const CONFIG = {
         AUTH: '/auth/verify',
         STAMPS: '/stamps',
         AWARD: '/stamps/award',
-        GPS_VERIFY: '/gps/verify'
+        GPS_VERIFY: '/gps/verify',
+        S3_UPLOAD_URL: '/s3/upload-url'
     }
 };
 
@@ -30,3 +31,4 @@ try {
 } catch (error) {
     console.error('❌ CONFIGオブジェクトのエクスポートに失敗:', error);
 }
+
