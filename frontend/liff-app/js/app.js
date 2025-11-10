@@ -117,11 +117,78 @@ function showLoginButton() {
 }
 
 /**
+ * 招待リンクの処理
+ */
+async function handleInviteLink() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteUserId = urlParams.get('invite');
+        
+        if (inviteUserId) {
+            console.log('招待リンクを検出:', inviteUserId);
+            
+            // セッションストレージに保存（認証後に処理）
+            sessionStorage.setItem('invite_user_id', inviteUserId);
+            
+            // URLから招待パラメータを削除（見た目をクリーンにする）
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    } catch (error) {
+        console.error('招待リンク処理エラー:', error);
+    }
+}
+
+/**
+ * 友達関係を追加（認証後）
+ */
+async function addFriendFromInvite() {
+    try {
+        const inviteUserId = sessionStorage.getItem('invite_user_id');
+        if (!inviteUserId) {
+            return; // 招待リンクがない場合は何もしない
+        }
+        
+        const userId = sessionStorage.getItem(CONFIG.STORAGE_KEYS.USER_ID);
+        if (!userId) {
+            return; // ユーザーIDがない場合は後で処理
+        }
+        
+        // 自分自身を追加しない
+        if (userId === inviteUserId) {
+            console.log('自分自身を友達に追加することはできません');
+            sessionStorage.removeItem('invite_user_id');
+            return;
+        }
+        
+        // 友達関係を追加
+        try {
+            await api.addFriend(userId, inviteUserId);
+            console.log('友達関係を追加しました:', inviteUserId);
+            
+            // 成功メッセージ（オプション）
+            // alert('友達を追加しました！');
+            
+            // 招待IDを削除
+            sessionStorage.removeItem('invite_user_id');
+        } catch (error) {
+            console.error('友達関係追加エラー:', error);
+            // エラーが発生しても続行（既に友達関係がある場合など）
+        }
+    } catch (error) {
+        console.error('友達追加処理エラー:', error);
+    }
+}
+
+/**
  * ログイン済みの処理
  */
 async function handleLoggedIn() {
     try {
         console.log('handleLoggedIn 開始');
+        
+        // 招待リンクの処理（認証前）
+        await handleInviteLink();
         
         // LIFF SDKが初期化されているか確認
         if (typeof liff === 'undefined') {
@@ -177,6 +244,9 @@ async function handleLoggedIn() {
             user_id: responseData.user_id,
             display_name: responseData.display_name
         });
+        
+        // 招待リンクから来た場合、友達関係を追加
+        await addFriendFromInvite();
         
         // ローディングを非表示
         hideLoading();

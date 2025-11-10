@@ -640,3 +640,120 @@ button {
 [style*="display: none"] {
     display: none !important;
 }
+
+/* ランキング画面 */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    border-bottom: 2px solid #ddd;
+}
+
+.tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.tab:hover {
+    color: #3964a1;
+}
+
+.tab.active {
+    color: #3964a1;
+    border-bottom-color: #3964a1;
+    font-weight: bold;
+}
+
+.rankings-container {
+    margin: 20px;
+    min-height: 300px;
+}
+
+.ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ranking-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ranking-item.top-three {
+    background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+    border: 2px solid #ffd700;
+}
+
+.ranking-item .rank {
+    flex: 0 0 80px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #3964a1;
+}
+
+.ranking-item.top-three .rank {
+    font-size: 20px;
+}
+
+.ranking-item .name {
+    flex: 1;
+    font-size: 16px;
+    margin-left: 15px;
+}
+
+.ranking-item .count {
+    flex: 0 0 80px;
+    text-align: right;
+    font-weight: bold;
+    color: #666;
+}
+
+.ranking-item.self {
+    background-color: #e8f4f8;
+    border-left: 4px solid #3964a1;
+}
+
+.ranking-item.self .name {
+    font-weight: bold;
+    color: #3964a1;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.empty-state .text-muted {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #999;
+}
+
+.action-buttons {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.action-buttons .btn {
+    padding: 12px 30px;
+    font-size: 16px;
+}
