@@ -543,6 +543,9 @@ async function initializeLIFF() {
     }
 }
 
+// loadStamps関数をグローバルに公開（デバッグ用）
+window.loadStamps = loadStamps;
+
 // DOMContentLoadedイベントで初期化
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

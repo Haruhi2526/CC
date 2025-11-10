@@ -17,7 +17,7 @@
 ### 必要な情報
 - **LIFF ID**: LINE Developersコンソールで取得
 - **API Gatewayエンドポイント**: 
-  - `https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev`
+  - `https://c5nmu4q3di.execute-api.us-east-1.amazonaws.com/dev`
 - **エンドポイント一覧**:
   - `POST /auth/verify` - LINE認証
   - `GET /stamps?userId={userId}` - スタンプ一覧取得
@@ -179,7 +179,7 @@ API呼び出しのラッパー関数を実装します。
 // API設定
 const CONFIG = {
     // API Gatewayエンドポイント
-    API_BASE_URL: 'https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev',
+    API_BASE_URL: 'https://c5nmu4q3di.execute-api.us-east-1.amazonaws.com/dev',
     
     // LIFF ID（環境に応じて変更）
     // LINE Developersコンソールで取得

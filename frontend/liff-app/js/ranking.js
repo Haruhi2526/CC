@@ -331,15 +331,42 @@ async function loadRankings(period, type = 'friends') {
         console.log('📊 ランキングAPIレスポンス:', response);
         console.log('📊 response.ok:', response.ok);
         console.log('📊 response.rankings:', response.rankings);
-        console.log('📊 rankings.length:', response.rankings ? response.rankings.length : 0);
+        console.log('📊 response全体のキー:', Object.keys(response || {}));
         
-        if (response.ok && response.rankings) {
-            currentRankings = response.rankings;
-            console.log('✅ ランキングデータを取得しました。件数:', response.rankings.length);
-            displayRankings(response.rankings);
+        // APIレスポンスの形式を確認
+        // apiCall関数はbodyをパースして展開しているため、直接okとrankingsが含まれているはず
+        const ok = response.ok !== undefined ? response.ok : (response.statusCode === 200);
+        const rankings = response.rankings || [];
+        
+        console.log('📊 パース後のok:', ok);
+        console.log('📊 パース後のrankings:', rankings);
+        console.log('📊 rankings.length:', rankings.length);
+        
+        if (ok && Array.isArray(rankings)) {
+            currentRankings = rankings;
+            console.log('✅ ランキングデータを取得しました。件数:', rankings.length);
+            displayRankings(rankings);
         } else {
             console.error('❌ ランキング取得失敗:', response);
-            throw new Error(response.message || 'ランキングの取得に失敗しました');
+            const errorMessage = response.message || 'ランキングの取得に失敗しました';
+            
+            // ランキングデータが空の場合、計算が必要かもしれない
+            if (rankings.length === 0) {
+                console.warn('⚠️ ランキングデータが空です。ランキング計算が必要かもしれません。');
+                elements.rankingsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <p>ランキングデータがありません</p>
+                        <p class="text-muted">スタンプを集めてランキングに参加しましょう！</p>
+                        <p class="text-muted" style="margin-top: 10px; font-size: 12px;">
+                            ランキング計算が実行されていない可能性があります。<br>
+                            管理者に連絡してください。
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            throw new Error(errorMessage);
         }
     } catch (error) {
         console.error('ランキング取得失敗:', error);

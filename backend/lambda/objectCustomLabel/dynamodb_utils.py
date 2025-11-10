@@ -87,11 +87,11 @@ def find_stamp_by_image_label(image_label: str) -> Optional[Dict[str, Any]]:
     try:
         # Scan操作でImageLabelが一致するスタンプを検索
         # 注意: データ量が多い場合はGSIの追加を検討
+        # Typeに関係なく、ImageLabelが一致するスタンプを検索（GPS/IMAGEの両方で取得可能にする）
         response = table.scan(
-            FilterExpression='ImageLabel = :label AND Type = :type',
+            FilterExpression='ImageLabel = :label',
             ExpressionAttributeValues={
-                ':label': image_label,
-                ':type': 'IMAGE'
+                ':label': image_label
             }
         )
         

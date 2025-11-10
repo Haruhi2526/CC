@@ -121,13 +121,16 @@ def award_stamp_for_label(user_id: str, label_name: str) -> dict:
                 'reason': f'Stamp has expired. Valid until: {valid_to}'
             }
         
-        # スタンプタイプのチェック（IMAGEであることを確認）
+        # スタンプタイプのチェック
+        # Typeが設定されている場合、GPS/IMAGEのどちらでも許可（両方の方法で取得可能にする）
         stamp_type = stamp_master.get('Type', '').upper()
-        if stamp_type != 'IMAGE':
+        if stamp_type and stamp_type not in ['GPS', 'IMAGE']:
+            # TypeがGPS/IMAGE以外の場合はエラー
             return {
                 'awarded': False,
-                'reason': f'Stamp type is not IMAGE. Type: {stamp_type}'
+                'reason': f'Invalid stamp type: {stamp_type}'
             }
+        # Typeが設定されていない場合、またはGPS/IMAGEの場合は許可
         
         # 重複チェック
         if check_stamp_exists(user_id, stamp_id):

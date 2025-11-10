@@ -375,7 +375,7 @@ Archive:  lambda-award.zip
 2. curlコマンドまたはPostmanでテスト:
 
 ```bash
-curl -X POST https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev/stamps/award \
+curl -X POST https://c5nmu4q3di.execute-api.us-east-1.amazonaws.com/dev/stamps/award \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "test_user_123",

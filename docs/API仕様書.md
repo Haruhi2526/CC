@@ -40,7 +40,8 @@
 https://{api-id}.execute-api.{region}.amazonaws.com/dev
 ```
 
-**例**: `https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev`
+**例（メインAPI）**: `https://c5nmu4q3di.execute-api.us-east-1.amazonaws.com/dev`  
+**例（ランキングAPI）**: `https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev`
 
 ---
 

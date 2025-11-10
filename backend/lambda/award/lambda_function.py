@@ -113,11 +113,24 @@ def lambda_handler(event, context):
             return create_error_response(400, f'Stamp has expired. Valid until: {valid_to}', 'STAMP_EXPIRED')
         
         # スタンプタイプのチェック（GPS/IMAGEと一致しているか）
+        # 注意: スタンプマスターのTypeが設定されている場合のみチェック
+        # Typeが設定されていない場合は、GPS/IMAGEのどちらでも許可
         stamp_type = stamp_master.get('Type', '').upper()
-        if stamp_type and stamp_type != method:
+        if stamp_type and stamp_type not in ['GPS', 'IMAGE']:
+            # TypeがGPS/IMAGE以外の場合はエラー
             return create_error_response(400, 
-                f'Stamp type mismatch. Expected: {stamp_type}, Got: {method}', 
-                'STAMP_TYPE_MISMATCH')
+                f'Invalid stamp type: {stamp_type}', 
+                'INVALID_STAMP_TYPE')
+        
+        # Typeが設定されている場合、methodと一致することを確認
+        # ただし、Typeが設定されていない場合は、GPS/IMAGEのどちらでも許可
+        if stamp_type and stamp_type != method:
+            # 警告ログを出力するが、エラーにはしない（両方の方法で取得可能にする）
+            print(f'Warning: Stamp type mismatch. Expected: {stamp_type}, Got: {method}. Proceeding anyway.')
+            # エラーにしない（両方の方法で取得可能にする）
+            # return create_error_response(400, 
+            #     f'Stamp type mismatch. Expected: {stamp_type}, Got: {method}', 
+            #     'STAMP_TYPE_MISMATCH')
         
         # 重複チェック
         try:

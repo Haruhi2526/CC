@@ -366,7 +366,7 @@ openssl rand -hex 32
 2. curlコマンドまたはPostmanでテスト:
 
 ```bash
-curl -X POST https://2bm71jvfs6.execute-api.us-east-1.amazonaws.com/dev/auth/verify \
+curl -X POST https://c5nmu4q3di.execute-api.us-east-1.amazonaws.com/dev/auth/verify \
   -H "Content-Type: application/json" \
   -d '{"id_token": "test_token_12345"}'
 ```
